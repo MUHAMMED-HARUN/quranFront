@@ -15,6 +15,10 @@ export const studentEnrollmentService = {
         return api.get(`/StudentEnrollments/${id}`) as unknown as Promise<TResult<StudentEnrollment>>;
     },
 
+    getByStudentAndGroup: (studentId: string, groupId: string): Promise<TResult<StudentEnrollment>> => {
+        return api.get(`/StudentEnrollments/student/${studentId}/group/${groupId}`) as unknown as Promise<TResult<StudentEnrollment>>;
+    },
+
     create: (data: CreateStudentEnrollmentCommand): Promise<TResult<string>> => {
         return api.post("/StudentEnrollments", data) as unknown as Promise<TResult<string>>;
     },

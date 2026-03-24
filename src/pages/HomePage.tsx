@@ -40,6 +40,8 @@ const services = [
     { title: 'أنواع وحدات النطاق', icon: <CategoryIcon sx={{ fontSize: 60, color: 'info.main' }} />, path: '/scope-unit-types', description: 'إدارة أنواع النطاق' },
     { title: 'إدارة المواد (Matters)', icon: <MenuBookIcon sx={{ fontSize: 60, color: 'secondary.main' }} />, path: '/matters', description: 'إدارة المواد والمقررات الدراسية التفصيلية' },
     { title: 'المتابعة اليومية', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'primary.main' }} />, path: '/daily-tracking', description: 'تتبع وتقييم الحفظ والمراجعة للطلاب' },
+    { title: 'التقييم اليومي', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'success.main' }} />, path: '/daily-evaluations', description: 'إضافة ومتابعة تقييم الطلاب اليومي بدقة' },
+    { title: 'تسجيل طلاب النطاقات', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'info.main' }} />, path: '/enroll-student-in-scope-executions', description: 'إدارة تسجيل الطلاب في النطاقات والفصول الدراسية' },
 ];
 
 export const HomePage = () => {

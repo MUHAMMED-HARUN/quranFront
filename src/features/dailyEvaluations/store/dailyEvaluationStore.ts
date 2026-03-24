@@ -1,10 +1,10 @@
 import { create } from "zustand";
 
-interface DailyTrackingFilters {
+interface DailyEvaluationFilters {
     search: string;
 }
 
-interface DailyTrackingStore {
+interface DailyEvaluationStore {
     selectedIds: string[];
     toggleSelection: (id: string) => void;
     selectAll: (ids: string[]) => void;
@@ -18,12 +18,12 @@ interface DailyTrackingStore {
     openCard: () => void;
     closeCard: () => void;
 
-    filters: DailyTrackingFilters;
-    setFilters: (filters: Partial<DailyTrackingFilters>) => void;
+    filters: DailyEvaluationFilters;
+    setFilters: (filters: Partial<DailyEvaluationFilters>) => void;
     clearFilters: () => void;
 }
 
-export const useDailyTrackingStore = create<DailyTrackingStore>((set) => ({
+export const useDailyEvaluationStore = create<DailyEvaluationStore>((set) => ({
     selectedIds: [],
     toggleSelection: (id) =>
         set((state) => ({

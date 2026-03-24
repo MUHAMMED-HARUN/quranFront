@@ -1,55 +1,136 @@
 import React, { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
-import { DailyTrackingTable } from "../components/DailyTrackingTable";
-import { DailyTrackingForm } from "../components/DailyTrackingForm";
+import { Box, Typography, Button, Container, TextField } from "@mui/material";
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+} from "@mui/icons-material";
+import {
+  DailyTrackingTable,
+  DailyTrackingForm,
+  DailyTrackingCard,
+} from "../components";
 import { useDailyTrackingStore } from "../store/dailyTrackingStore";
+import { useDeleteDailyTrackingMutation } from "../hooks/useDailyTrackings";
 
 export const DailyTrackingsPage = () => {
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<any>(null);
-    const { clearSelection } = useDailyTrackingStore();
+  const { selectedIds, openForm, openCard, setFilters, clearSelection } =
+    useDailyTrackingStore();
 
-    const handleOpenForm = (item?: any) => {
-        setSelectedItem(item || null);
-        setIsFormOpen(true);
-    };
+  const deleteMutation = useDeleteDailyTrackingMutation();
+  const [searchInput, setSearchInput] = useState("");
 
-    const handleCloseForm = () => {
-        setSelectedItem(null);
-        setIsFormOpen(false);
-        clearSelection();
-    };
+  const handleSearch = () => {
+    setFilters({ search: searchInput });
+  };
 
-    const handleOpenView = (item: any) => {
-        window.alert("تفاصيل التقييم: " + item.Id);
-    };
+  const handleDelete = () => {
+    if (window.confirm("هل أنت متأكد من الحذف؟")) {
+      deleteMutation.mutate(selectedIds[0], {
+        onSuccess: () => {
+          clearSelection();
+        },
+      });
+    }
+  };
 
-    return (
-        <Box p={3}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h4">التقييم اليومي</Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => handleOpenForm()}
-                >
-                    إضافة تقييم يومي
-                </Button>
-            </Box>
+  return (
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h4" component="h1" fontWeight="bold">
+          إدارة المتابعة اليومية
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={openForm}
+          size="large"
+          sx={{ borderRadius: 2 }}
+        >
+          إضافة متابعة جديدة
+        </Button>
+      </Box>
 
-            <DailyTrackingTable
-                onOpenForm={handleOpenForm}
-                onOpenView={handleOpenView}
-            />
+      {/* Filters Section */}
+      <Box
+        display="flex"
+        gap={2}
+        mb={3}
+        p={2}
+        bgcolor="background.paper"
+        borderRadius={2}
+        boxShadow={1}
+      >
+        <TextField
+          label="بحث سريع"
+          variant="outlined"
+          size="small"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          sx={{ minWidth: 300 }}
+        />
+        <Button variant="outlined" onClick={handleSearch}>
+          بحث
+        </Button>
+      </Box>
 
-            {isFormOpen && (
-                <DailyTrackingForm
-                    isOpen={isFormOpen}
-                    onClose={handleCloseForm}
-                    selectedItem={selectedItem}
-                />
-            )}
-        </Box>
-    );
+      <DailyTrackingTable />
+
+      {/* Actions Bar */}
+      <Box
+        display="flex"
+        gap={2}
+        mt={3}
+        p={2}
+        bgcolor="background.paper"
+        borderRadius={2}
+        boxShadow={1}
+        alignItems="center"
+      >
+        <Typography variant="body2" color="textSecondary" sx={{ mr: "auto" }}>
+          تم تحديد {selectedIds.length} عنصر
+        </Typography>
+
+        <Button
+          variant="outlined"
+          color="info"
+          startIcon={<VisibilityIcon />}
+          disabled={selectedIds.length !== 1}
+          onClick={openCard}
+        >
+          عرض التفاصيل
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="warning"
+          startIcon={<EditIcon />}
+          disabled={selectedIds.length !== 1}
+          onClick={openForm}
+        >
+          تعديل
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteIcon />}
+          disabled={selectedIds.length !== 1}
+          onClick={handleDelete}
+        >
+          حذف
+        </Button>
+      </Box>
+
+      <DailyTrackingForm />
+      <DailyTrackingCard />
+    </Container>
+  );
 };

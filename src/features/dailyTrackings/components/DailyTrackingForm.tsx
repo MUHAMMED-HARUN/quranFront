@@ -2,39 +2,37 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    Box,
-    CircularProgress,
-    Autocomplete,
-    TextField,
-    Typography,
-    MenuItem,
+    Dialog, DialogTitle, DialogContent, DialogActions,
+    Button, Box, CircularProgress, Autocomplete, TextField, Typography, MenuItem
 } from "@mui/material";
 
 import { useDailyTrackingStore } from "../store/dailyTrackingStore";
 import {
     useCreateDailyTrackingMutation,
     useUpdateDailyTrackingMutation,
+    useDailyTrackingsQuery
 } from "../hooks/useDailyTrackings";
-import { DailyTrackingSchema } from "../types/dailyTracking.types";
+import { DailyTrackingSchema, CreateDailyTrackingCommand } from "../types/dailyTracking.types";
 
-import { useSearchSubjectsByNameQuery } from "../../subjects/hooks";
-import { useSearchStudentsByNationalNumQuery } from "../../students/hooks";
-import { useScopeUnitTypesQuery } from "../../scopeUnitTypes/hooks";
+import { useSearchMattersQuery } from "../../matters/hooks/useSearchMattersQuery";
+import { useSearchStudentsByNationalNumberQuery } from "../../students/hooks/useSearchStudentsByNationalNumberQuery";
+import { useScopeUnitTypesQuery } from "../../scopeUnitTypes/hooks/useScopeUnitTypesQuery";
 
-export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: boolean, onClose: () => void, selectedItem?: any }) => {
-    const isEditing = !!selectedItem;
+export const DailyTrackingForm = () => {
+    const { isFormOpen, closeForm, selectedIds } = useDailyTrackingStore();
+    const { data: listResponse } = useDailyTrackingsQuery();
+
+    const isEditing = selectedIds.length === 1;
+    const editId = isEditing ? selectedIds[0] : null;
+    const trackings = Array.isArray(listResponse) ? listResponse : ((listResponse as any)?.Value || []);
+    const selectedItem = isEditing ? trackings.find((x: any) => (x.Id || x.ID) === editId) : null;
+
     const createMutation = useCreateDailyTrackingMutation();
     const updateMutation = useUpdateDailyTrackingMutation();
 
     const { control, handleSubmit, reset } = useForm<any>({
         resolver: zodResolver(DailyTrackingSchema),
         defaultValues: {
-            Id: "",
             MatterID: "",
             StudentID: "",
             CurrentUnit: 0,
@@ -43,21 +41,21 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
         },
     });
 
-    const [subjectSearch, setSubjectSearch] = useState("");
+    // Autocomplete States
+    const [matterSearch, setMatterSearch] = useState("");
+    const { data: mattersRes, isFetching: isMatterSearching } = useSearchMattersQuery(matterSearch);
+    const matterOptions = Array.isArray(mattersRes) ? mattersRes : ((mattersRes as any)?.Value || []);
+
     const [studentSearch, setStudentSearch] = useState("");
+    const { data: studentsRes, isFetching: isStudentSearching } = useSearchStudentsByNationalNumberQuery(studentSearch);
+    const studentOptions = Array.isArray(studentsRes) ? studentsRes : ((studentsRes as any)?.Value || []);
 
-    const { data: subjectRes, isFetching: isSubjectSearching } = useSearchSubjectsByNameQuery(subjectSearch || "");
-    const { data: studentRes, isFetching: isStudentSearching } = useSearchStudentsByNationalNumQuery(studentSearch || "");
-    const { data: scopeUnitTypesRes, isFetching: isScopeUnitsLoading } = useScopeUnitTypesQuery();
-
-    const subjectOptions = Array.isArray(subjectRes) ? subjectRes : ((subjectRes as any)?.Value || []);
-    const studentOptions = Array.isArray(studentRes) ? studentRes : ((studentRes as any)?.Value || []);
-    const scopeUnitOptions = Array.isArray(scopeUnitTypesRes) ? scopeUnitTypesRes : ((scopeUnitTypesRes as any)?.Value || []);
+    const { data: scopeUnitsRes } = useScopeUnitTypesQuery();
+    const scopeUnitsOptions = Array.isArray(scopeUnitsRes) ? scopeUnitsRes : ((scopeUnitsRes as any)?.Value || []);
 
     useEffect(() => {
         if (isEditing && selectedItem) {
             reset({
-                Id: selectedItem.Id || selectedItem.ID,
                 MatterID: selectedItem.MatterID || "",
                 StudentID: selectedItem.StudentID || "",
                 CurrentUnit: selectedItem.CurrentUnit || 0,
@@ -66,26 +64,25 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
             });
         } else if (!isEditing) {
             reset({
-                Id: "",
                 MatterID: "",
                 StudentID: "",
                 CurrentUnit: 0,
                 ScopeUnitTypeID: "",
                 TotalScopeUnit: 0
             });
-            setSubjectSearch("");
+            setMatterSearch("");
             setStudentSearch("");
         }
-    }, [isEditing, selectedItem, reset]);
+    }, [isEditing, selectedItem, reset, isFormOpen]);
 
     const handleClose = () => {
-        onClose();
+        closeForm();
         reset();
     };
 
     const onSubmit = (data: any) => {
         if (isEditing) {
-            updateMutation.mutate({ id: data.Id, data }, { onSuccess: handleClose });
+            updateMutation.mutate({ id: editId!, data }, { onSuccess: handleClose });
         } else {
             createMutation.mutate(data, { onSuccess: handleClose });
         }
@@ -94,26 +91,31 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
     const isSaving = createMutation.isPending || updateMutation.isPending;
 
     return (
-        <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
-            <DialogTitle>{isEditing ? "تعديل تقييم اليومي" : "إضافة تقييم يومي جديد"}</DialogTitle>
+        <Dialog open={isFormOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+            <DialogTitle>{isEditing ? "تعديل المتابعة" : "إضافة متابعة جديدة"}</DialogTitle>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <DialogContent dividers>
                     <Box display="flex" flexDirection="column" gap={3}>
 
-                        {/* Subject Autocomplete */}
+                        {/* Matter Autocomplete */}
                         <Controller
                             name="MatterID"
                             control={control}
                             render={({ field, fieldState }) => (
                                 <Autocomplete
-                                    options={subjectOptions}
+                                    options={matterOptions}
                                     getOptionLabel={(option: any) => option.Name || ""}
-                                    isOptionEqualToValue={(option, value) => (option.Id || option.ID || option.ProgramID || option.ClassID || option.GroupID || option.SubjectID || option.StudentID) === (value?.Id || value?.ID || value?.ProgramID || value?.ClassID || value?.GroupID || value?.SubjectID || value?.StudentID || value)}
-                                    loading={isSubjectSearching}
-                                    onInputChange={(e, newInputValue) => setSubjectSearch(newInputValue)}
-                                    onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.ProgramID || newValue.ClassID || newValue.GroupID || newValue.SubjectID || newValue.StudentID || "") : "")}
+                                    isOptionEqualToValue={(option, value) => (option.Id || option.ID) === (value?.Id || value?.ID || value)}
+                                    loading={isMatterSearching}
+                                    onInputChange={(e, newInputValue, reason) => {
+                                        if (reason === "input" || reason === "clear") {
+                                            setMatterSearch(newInputValue);
+                                        }
+                                    }}
+                                    onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID) : "")}
+                                    value={matterOptions.find((opt: any) => (opt.Id || opt.ID) === field.value) || null}
                                     renderOption={(props, option: any) => (
-                                        <li {...props} key={option.Id || option.ID || option.ProgramID || option.ClassID || option.GroupID || option.SubjectID || option.StudentID}>
+                                        <li {...props} key={option.Id || option.ID}>
                                             <Typography variant="body1" fontWeight="bold">
                                                 {option.Name}
                                             </Typography>
@@ -122,14 +124,14 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            label="ابحث عن المقرر"
+                                            label="بحث عن المادة (الاسم)"
                                             error={!!fieldState.error}
                                             helperText={fieldState.error?.message}
                                             InputProps={{
                                                 ...params.InputProps,
                                                 endAdornment: (
                                                     <React.Fragment>
-                                                        {isSubjectSearching ? <CircularProgress color="inherit" size={20} /> : null}
+                                                        {isMatterSearching ? <CircularProgress color="inherit" size={20} /> : null}
                                                         {params.InputProps.endAdornment}
                                                     </React.Fragment>
                                                 ),
@@ -140,26 +142,31 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
                             )}
                         />
 
-                        {/* Student Autocomplete (search by National ID) */}
+                        {/* Student Autocomplete */}
                         <Controller
                             name="StudentID"
                             control={control}
                             render={({ field, fieldState }) => (
                                 <Autocomplete
                                     options={studentOptions}
-                                    getOptionLabel={(option: any) => option.NationalNumber || ""}
-                                    isOptionEqualToValue={(option, value) => (option.Id || option.ID || option.ProgramID || option.ClassID || option.GroupID || option.SubjectID || option.StudentID) === (value?.Id || value?.ID || value?.ProgramID || value?.ClassID || value?.GroupID || value?.SubjectID || value?.StudentID || value)}
+                                    getOptionLabel={(option: any) => `${option.NationalNumber} - ${option.FullName || option.Name || ""}`}
+                                    isOptionEqualToValue={(option, value) => (option.Id || option.ID || option.PersonID) === (value?.Id || value?.ID || value?.PersonID || value)}
                                     loading={isStudentSearching}
-                                    onInputChange={(e, newInputValue) => setStudentSearch(newInputValue)}
-                                    onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.ProgramID || newValue.ClassID || newValue.GroupID || newValue.SubjectID || newValue.StudentID || "") : "")}
+                                    onInputChange={(e, newInputValue, reason) => {
+                                        if (reason === "input" || reason === "clear") {
+                                            setStudentSearch(newInputValue);
+                                        }
+                                    }}
+                                    onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.PersonID) : "")}
+                                    value={studentOptions.find((opt: any) => (opt.Id || opt.ID || opt.PersonID) === field.value) || null}
                                     renderOption={(props, option: any) => (
-                                        <li {...props} key={option.Id || option.ID || option.ProgramID || option.ClassID || option.GroupID || option.SubjectID || option.StudentID}>
-                                            <Box display="flex" flexDirection="column">
+                                        <li {...props} key={option.Id || option.ID || option.PersonID}>
+                                            <Box>
                                                 <Typography variant="body1" fontWeight="bold">
                                                     {option.NationalNumber}
                                                 </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {option.FirstName} {option.FatherName} {option.LastName}
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {option.FullName || option.Name}
                                                 </Typography>
                                             </Box>
                                         </li>
@@ -167,7 +174,7 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            label="ابحث عن الطالب (رقم الهوية)"
+                                            label="بحث عن الطالب (رقم الهوية)"
                                             error={!!fieldState.error}
                                             helperText={fieldState.error?.message}
                                             InputProps={{
@@ -185,61 +192,58 @@ export const DailyTrackingForm = ({ isOpen, onClose, selectedItem }: { isOpen: b
                             )}
                         />
 
+                        {/* Scope Unit Type Dropdown */}
                         <Controller
                             name="ScopeUnitTypeID"
                             control={control}
                             render={({ field, fieldState }) => (
                                 <TextField
-                                    select
                                     {...field}
-                                    label="وحدة النطاق"
+                                    select
+                                    label="نوع الوحدة"
                                     error={!!fieldState.error}
                                     helperText={fieldState.error?.message}
                                     fullWidth
-                                    disabled={isScopeUnitsLoading}
                                 >
-                                    {scopeUnitOptions.map((opt: any) => (
-                                        <MenuItem key={opt.ID || opt.Id} value={opt.ID || opt.Id}>
-                                            {opt.Name}
+                                    <MenuItem value="">اختر نوع الوحدة</MenuItem>
+                                    {scopeUnitsOptions.map((su: any) => (
+                                        <MenuItem key={su.Id || su.ID} value={su.Id || su.ID}>
+                                            {su.Name}
                                         </MenuItem>
                                     ))}
                                 </TextField>
                             )}
                         />
 
-                        <Box display="flex" gap={2}>
-                            <Controller
-                                name="CurrentUnit"
-                                control={control}
-                                render={({ field, fieldState }) => (
-                                    <TextField
-                                        {...field}
-                                        label="الوحدة الحالية"
-                                        type="number"
-                                        error={!!fieldState.error}
-                                        helperText={fieldState.error?.message}
-                                        fullWidth
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
-                                    />
-                                )}
-                            />
+                        <Controller
+                            name="CurrentUnit"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <TextField
+                                    {...field}
+                                    type="number"
+                                    label="الوحدة الحالية"
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                    fullWidth
+                                />
+                            )}
+                        />
 
-                            <Controller
-                                name="TotalScopeUnit"
-                                control={control}
-                                render={({ field, fieldState }) => (
-                                    <TextField
-                                        {...field}
-                                        label="إجمالي وحدات النطاق"
-                                        type="number"
-                                        error={!!fieldState.error}
-                                        helperText={fieldState.error?.message}
-                                        fullWidth
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
-                                    />
-                                )}
-                            />
-                        </Box>
+                        <Controller
+                            name="TotalScopeUnit"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <TextField
+                                    {...field}
+                                    type="number"
+                                    label="إجمالي الوحدات المستهدفة"
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                    fullWidth
+                                />
+                            )}
+                        />
 
                     </Box>
                 </DialogContent>

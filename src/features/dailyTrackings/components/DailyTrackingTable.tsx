@@ -7,117 +7,83 @@ import {
     TableHead,
     TableRow,
     Paper,
-    IconButton,
     Checkbox,
-    Box,
-    Typography,
+    CircularProgress,
+    Alert
 } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from "@mui/icons-material";
-import { useDailyTrackingsQuery, useDeleteDailyTrackingMutation } from "../hooks/useDailyTrackings";
-import { useStudentAssessmentsQuery } from "../../studentAssessments/hooks/useStudentAssessments";
+import { useDailyTrackingsQuery } from "../hooks/useDailyTrackings";
 import { useDailyTrackingStore } from "../store/dailyTrackingStore";
 
-export const DailyTrackingTable = ({ onOpenForm, onOpenView }: { onOpenForm: (item: any) => void; onOpenView: (item: any) => void }) => {
-    const { data: response, isLoading } = useDailyTrackingsQuery();
-    const { data: assessmentsResponse } = useStudentAssessmentsQuery();
-    const deleteMutation = useDeleteDailyTrackingMutation();
-    const { selectedIds, setSelectedIds } = useDailyTrackingStore();
+export const DailyTrackingTable = () => {
+    const { data: response, isLoading, isError, error } = useDailyTrackingsQuery();
+    const { selectedIds, toggleSelection, selectAll, openCard } = useDailyTrackingStore();
 
-    if (isLoading) return <Typography>جاري التحميل...</Typography>;
+    if (isLoading) return <CircularProgress />;
+    if (isError) return <Alert severity="error">{(error as Error).message}</Alert>;
 
-    const items = Array.isArray(response) ? response : ((response as any)?.Value || []);
-    const studentAssessments = Array.isArray(assessmentsResponse) ? assessmentsResponse : ((assessmentsResponse as any)?.Value || []);
-
-    const hasAssessment = (studentId: string) => {
-        return studentAssessments.some((sa: any) => sa.StudentID === studentId);
-    };
+    const trackings = Array.isArray(response) ? response : ((response as any)?.Value || []);
 
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            setSelectedIds(items.map((s: any) => s.Id || s.ID));
+            selectAll(trackings.map((t: any) => t.Id || t.ID));
         } else {
-            setSelectedIds([]);
+            selectAll([]);
         }
     };
 
-    const handleSelect = (id: string) => {
-        if (selectedIds.includes(id)) {
-            setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-        } else {
-            setSelectedIds([...selectedIds, id]);
-        }
-    };
-
-    const handleDelete = (id: string) => {
-        if (window.confirm("هل أنت متأكد من حذف هذا التقييم؟")) {
-            deleteMutation.mutate(id);
-        }
+    const handleRowClick = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleSelection(id);
+        openCard();
     };
 
     return (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} elevation={2} sx={{ mt: 3 }}>
             <Table>
                 <TableHead>
-                    <TableRow>
+                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                         <TableCell padding="checkbox">
                             <Checkbox
-                                indeterminate={selectedIds.length > 0 && selectedIds.length < items.length}
-                                checked={items.length > 0 && selectedIds.length === items.length}
+                                indeterminate={selectedIds.length > 0 && selectedIds.length < trackings.length}
+                                checked={trackings.length > 0 && selectedIds.length === trackings.length}
                                 onChange={handleSelectAll}
                             />
                         </TableCell>
                         <TableCell>المقرر</TableCell>
                         <TableCell>الطالب</TableCell>
                         <TableCell>الوحدة الحالية</TableCell>
-                        <TableCell>إجمالي الوحدات</TableCell>
-                        <TableCell>إجراءات</TableCell>
+                        <TableCell>إجمالي الوحدات المستهدفة</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {items.map((item: any) => {
-                        const id = item.Id || item.ID;
+                    {trackings.map((tracking: any) => {
+                        const id = tracking.Id || tracking.ID;
                         const isSelected = selectedIds.includes(id);
                         return (
-                            <TableRow key={id} selected={isSelected}>
-                                <TableCell padding="checkbox">
+                            <TableRow
+                                key={id}
+                                hover
+                                onClick={(e) => handleRowClick(id, e)}
+                                selected={isSelected}
+                                sx={{ cursor: "pointer" }}
+                            >
+                                <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
                                     <Checkbox
                                         checked={isSelected}
-                                        onChange={() => handleSelect(id)}
+                                        onChange={() => toggleSelection(id)}
                                     />
                                 </TableCell>
-                                <TableCell>{item.SubjectID}</TableCell> {/* Should display actual name dynamically */}
-                                <TableCell>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                        {item.StudentID}
-                                        {hasAssessment(item.StudentID) ? (
-                                            <CheckCircleIcon color="success" fontSize="small" titleAccess="الطالب مقيم" />
-                                        ) : (
-                                            <CancelIcon color="error" fontSize="small" titleAccess="الطالب غير مقيم" />
-                                        )}
-                                    </Box>
-                                </TableCell>
-                                <TableCell>{item.CurrentUnit}</TableCell>
-                                <TableCell>{item.TotalScopeUnit}</TableCell>
-                                <TableCell>
-                                    <Box display="flex" gap={1}>
-                                        <IconButton color="info" onClick={() => onOpenView(item)}>
-                                            <VisibilityIcon />
-                                        </IconButton>
-                                        <IconButton color="primary" onClick={() => onOpenForm(item)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                        <IconButton color="error" onClick={() => handleDelete(id)}>
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </Box>
-                                </TableCell>
+                                <TableCell>{tracking.MatterName || tracking.MatterID}</TableCell>
+                                <TableCell>{tracking.StudentFullName || tracking.StudentID}</TableCell>
+                                <TableCell>{tracking.CurrentUnit}</TableCell>
+                                <TableCell>{tracking.TotalScopeUnit}</TableCell>
                             </TableRow>
                         );
                     })}
-                    {items.length === 0 && (
+                    {trackings.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={6} align="center">
-                                لا توجد تقييمات يومية
+                            <TableCell colSpan={5} align="center">
+                                لا توجد سجلات تتبع
                             </TableCell>
                         </TableRow>
                     )}

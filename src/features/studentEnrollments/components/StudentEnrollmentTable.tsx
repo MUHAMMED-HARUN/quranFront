@@ -61,9 +61,11 @@ export const StudentEnrollmentTable = () => {
                                 onChange={handleSelectAll}
                             />
                         </TableCell>
-                        <TableCell>رقم الطالب (هوية)</TableCell>
+                        <TableCell>اسم الطالب الثلاثي</TableCell>
+                        <TableCell>رقم الهوية</TableCell>
                         <TableCell>اسم المجموعة</TableCell>
-                        <TableCell>تاريخ الانضمام</TableCell>
+                        <TableCell>تاريخ التسجيل</TableCell>
+                        <TableCell>هل هو مفعل</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -81,10 +83,12 @@ export const StudentEnrollmentTable = () => {
                                     onChange={() => toggleSelection(r.StudentEnrollmentID)}
                                 />
                             </TableCell>
-                            {/* Fallback to IDs if navigation props not included in DTO */}
-                            <TableCell>{r.Student?.NationalNumber || r.StudentID}</TableCell>
-                            <TableCell>{r.Group?.GroupName || r.GroupID}</TableCell>
+                            {/* Map to DTO values along with fallbacks */}
+                            <TableCell>{r.StudentName}</TableCell>
+                            <TableCell>{r.NationalNumber || r.Student?.NationalNumber || r.StudentID}</TableCell>
+                            <TableCell>{r.GroupName || r.Group?.GroupName || r.GroupID}</TableCell>
                             <TableCell>{new Date(r.Date).toLocaleDateString()}</TableCell>
+                            <TableCell>{r.IsActive ? "نعم" : "لا"}</TableCell>
                         </TableRow>
                     ))}
                     {records.length === 0 && (

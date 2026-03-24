@@ -72,6 +72,7 @@ export const Layout = ({ children }: Props) => {
         { text: 'نطاقات التقييم', icon: <CategoryIcon />, path: '/assessment-scopes' },
         { text: 'تنفيذ النطاقات', icon: <CategoryIcon />, path: '/scope-executions' },
         { text: 'تفاصيل التنفيذ', icon: <CategoryIcon />, path: '/scope-execution-details' },
+        { text: 'تسجيل طلاب النطاقات', icon: <HowToRegIcon />, path: '/enroll-student-in-scope-executions' },
         { text: 'التقييم اليومي', icon: <CategoryIcon />, path: '/daily-tracking' },
         { text: 'تقييمات الطلاب', icon: <CategoryIcon />, path: '/student-assessments' },
     ];
