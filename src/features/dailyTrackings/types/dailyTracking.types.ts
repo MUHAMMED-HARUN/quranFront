@@ -9,6 +9,16 @@ export interface DailyTracking {
     TotalScopeUnit: number;
 }
 
+export interface DailyTrackingListDto {
+    Id: string;
+    MatterName: string;
+    StudentFullName: string;
+    NationalNumber: string;
+    CurrentScope: number;
+    TotalScopeUnit: number;
+    ScopeUnitTypeName: string;
+}
+
 export interface CreateDailyTrackingCommand {
     MatterID: string;
     StudentID: string;

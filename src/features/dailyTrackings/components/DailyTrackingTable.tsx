@@ -50,9 +50,11 @@ export const DailyTrackingTable = () => {
                             />
                         </TableCell>
                         <TableCell>المقرر</TableCell>
-                        <TableCell>الطالب</TableCell>
-                        <TableCell>الوحدة الحالية</TableCell>
-                        <TableCell>إجمالي الوحدات المستهدفة</TableCell>
+                        <TableCell>اسم الطالب الثلاثي</TableCell>
+                        <TableCell>رقم الهوية</TableCell>
+                        <TableCell>النطاق الحالي</TableCell>
+                        <TableCell>المجموع</TableCell>
+                        <TableCell>نوع النطاق</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -73,16 +75,18 @@ export const DailyTrackingTable = () => {
                                         onChange={() => toggleSelection(id)}
                                     />
                                 </TableCell>
-                                <TableCell>{tracking.MatterName || tracking.MatterID}</TableCell>
-                                <TableCell>{tracking.StudentFullName || tracking.StudentID}</TableCell>
-                                <TableCell>{tracking.CurrentUnit}</TableCell>
+                                <TableCell>{tracking.MatterName}</TableCell>
+                                <TableCell>{tracking.StudentFullName}</TableCell>
+                                <TableCell>{tracking.NationalNumber}</TableCell>
+                                <TableCell>{tracking.CurrentScope}</TableCell>
                                 <TableCell>{tracking.TotalScopeUnit}</TableCell>
+                                <TableCell>{tracking.ScopeUnitTypeName}</TableCell>
                             </TableRow>
                         );
                     })}
                     {trackings.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={5} align="center">
+                            <TableCell colSpan={7} align="center">
                                 لا توجد سجلات تتبع
                             </TableCell>
                         </TableRow>

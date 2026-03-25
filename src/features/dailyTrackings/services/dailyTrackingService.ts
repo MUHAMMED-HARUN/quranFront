@@ -1,10 +1,10 @@
 import { api } from "../../../core/api";
 import { TResult } from "../../../types";
-import { DailyTracking, CreateDailyTrackingCommand, UpdateDailyTrackingCommand } from "../types/dailyTracking.types";
+import { DailyTracking, DailyTrackingListDto, CreateDailyTrackingCommand, UpdateDailyTrackingCommand } from "../types/dailyTracking.types";
 
 export const dailyTrackingService = {
-    getAll: (): Promise<TResult<DailyTracking[]>> => {
-        return api.get("/DailyTrackings") as unknown as Promise<TResult<DailyTracking[]>>;
+    getAll: (): Promise<TResult<DailyTrackingListDto[]>> => {
+        return api.get("/DailyTrackings") as unknown as Promise<TResult<DailyTrackingListDto[]>>;
     },
 
     getById: (id: string): Promise<TResult<DailyTracking>> => {
