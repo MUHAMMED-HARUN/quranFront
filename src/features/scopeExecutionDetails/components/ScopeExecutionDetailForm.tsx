@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
     Dialog,
@@ -19,6 +19,7 @@ import { useScopeExecutionDetailStore } from "../store/scopeExecutionDetailStore
 import {
     useCreateScopeExecutionDetailMutation,
     useUpdateScopeExecutionDetailMutation,
+    useScopeExecutionDetailsByExecutionIdQuery
 } from "../hooks/useScopeExecutionDetails";
 import { ScopeExecutionDetailSchema } from "../types/scopeExecutionDetail.types";
 
@@ -42,8 +43,14 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
             ScopeFrom: null,
             ScopeTo: null,
             ScopeUnitTypeID: "",
-            Notes: ""
+            Notes: "",
+            PrevScopeExecutionDetailID: null
         },
+    });
+
+    const scopeExecutionIdWatch = useWatch({
+        control,
+        name: "ScopeExecutionID"
     });
 
     const [executionSearch, setExecutionSearch] = useState("");
@@ -55,10 +62,13 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
     const { data: mattersRes, isFetching: isMatterSearching } = useSearchMattersByNameQuery(matterSearch || "");
     const { data: scopeUnitTypesRes, isFetching: isScopeUnitsLoading } = useScopeUnitTypesQuery();
 
+    const { data: previousDetailsRes, isFetching: isPreviousDetailsLoading } = useScopeExecutionDetailsByExecutionIdQuery(scopeExecutionIdWatch);
+
     const executionOptions = Array.isArray(executionRes) ? executionRes : ((executionRes as any)?.Value || []);
     const groupOptions = Array.isArray(groupRes) ? groupRes : ((groupRes as any)?.Value || []);
     const matterOptions = Array.isArray(mattersRes) ? mattersRes : ((mattersRes as any)?.Value || []);
     const scopeUnitOptions = Array.isArray(scopeUnitTypesRes) ? scopeUnitTypesRes : ((scopeUnitTypesRes as any)?.Value || []);
+    const previousDetailsOptions = Array.isArray(previousDetailsRes) ? previousDetailsRes : ((previousDetailsRes as any)?.Value || []);
 
     useEffect(() => {
         if (isEditing && selectedItem) {
@@ -70,7 +80,8 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                 ScopeFrom: selectedItem.ScopeFrom ?? null,
                 ScopeTo: selectedItem.ScopeTo ?? null,
                 ScopeUnitTypeID: selectedItem.ScopeUnitTypeID || "",
-                Notes: selectedItem.Notes || ""
+                Notes: selectedItem.Notes || "",
+                PrevScopeExecutionDetailID: selectedItem.PrevScopeExecutionDetailID || null
             });
         } else if (!isEditing) {
             reset({
@@ -81,7 +92,8 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                 ScopeFrom: null,
                 ScopeTo: null,
                 ScopeUnitTypeID: "",
-                Notes: ""
+                Notes: "",
+                PrevScopeExecutionDetailID: null
             });
             setExecutionSearch("");
             setGroupSearch("");
@@ -262,6 +274,46 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                             )}
                         />
 
+                        {/* Previous Scope Execution Detail Autocomplete */}
+                        <Controller
+                            name="PrevScopeExecutionDetailID"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <Autocomplete
+                                    options={previousDetailsOptions}
+                                    getOptionLabel={(option: any) => `من ${option.ScopeFrom} إلى ${option.ScopeTo} (${option.MatterName || option.MatterID})`}
+                                    isOptionEqualToValue={(option, value) => option.Id === (value?.Id || value)}
+                                    loading={isPreviousDetailsLoading}
+                                    onChange={(e, newValue: any) => field.onChange(newValue ? newValue.Id : null)}
+                                    value={previousDetailsOptions.find((opt: any) => opt.Id === field.value) || null}
+                                    renderOption={(props, option: any) => (
+                                        <li {...props} key={option.Id}>
+                                            <Typography variant="body2">
+                                                من {option.ScopeFrom} إلى {option.ScopeTo} - المادة: {option.MatterName || "غير محدد"}
+                                            </Typography>
+                                        </li>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="النطاق التفصيلي السابق (اختياري)"
+                                            error={!!fieldState.error}
+                                            helperText={fieldState.error?.message}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <React.Fragment>
+                                                        {isPreviousDetailsLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </React.Fragment>
+                                                ),
+                                            }}
+                                        />
+                                    )}
+                                />
+                            )}
+                        />
+
                         <Box display="flex" gap={2}>
                             <Controller
                                 name="ScopeFrom"
@@ -319,6 +371,6 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                     </Button>
                 </DialogActions>
             </form>
-        </Dialog>
+        </Dialog >
     );
 };

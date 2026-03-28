@@ -4,12 +4,16 @@ import { Add as AddIcon } from "@mui/icons-material";
 import { useSearchParams } from "react-router-dom";
 import { ScopeExecutionDetailTable } from "../components/ScopeExecutionDetailTable";
 import { ScopeExecutionDetailForm } from "../components/ScopeExecutionDetailForm";
+import { ScopeExecutionDetailCard } from "../components/ScopeExecutionDetailCard";
 import { useScopeExecutionDetailStore } from "../store/scopeExecutionDetailStore";
+import { StudentScopeExecutionsDetailsRegisterForm } from "../../studentScopeExecutionsDetailsRegisters/components/StudentScopeExecutionsDetailsRegisterForm";
 
 export const ScopeExecutionDetailsPage = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isEnrollFormOpen, setIsEnrollFormOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any>(null);
-    const { clearSelection, setFilters, filters } = useScopeExecutionDetailStore();
+    const [selectedDetailForEnroll, setSelectedDetailForEnroll] = useState<any>(null);
+    const { clearSelection, setFilters, filters, setSelectedIds, openCard } = useScopeExecutionDetailStore();
 
     const [searchParams] = useSearchParams();
     const [searchInput, setSearchInput] = useState("");
@@ -39,7 +43,18 @@ export const ScopeExecutionDetailsPage = () => {
     };
 
     const handleOpenView = (item: any) => {
-        window.alert("تفاصيل التنفيذ: " + item.Id);
+        setSelectedIds([item.Id || item.ID]);
+        openCard();
+    };
+
+    const handleOpenEnrollForm = (item: any) => {
+        setSelectedDetailForEnroll(item);
+        setIsEnrollFormOpen(true);
+    };
+
+    const handleCloseEnrollForm = () => {
+        setSelectedDetailForEnroll(null);
+        setIsEnrollFormOpen(false);
     };
 
     return (
@@ -73,6 +88,7 @@ export const ScopeExecutionDetailsPage = () => {
             <ScopeExecutionDetailTable
                 onOpenForm={handleOpenForm}
                 onOpenView={handleOpenView}
+                onEnrollStudent={handleOpenEnrollForm}
             />
 
             {isFormOpen && (
@@ -82,6 +98,16 @@ export const ScopeExecutionDetailsPage = () => {
                     selectedItem={selectedItem}
                 />
             )}
+
+            {isEnrollFormOpen && (
+                <StudentScopeExecutionsDetailsRegisterForm
+                    isOpen={isEnrollFormOpen}
+                    onClose={handleCloseEnrollForm}
+                    scopeExecutionDetail={selectedDetailForEnroll}
+                />
+            )}
+            
+            <ScopeExecutionDetailCard />
         </Container>
     );
 };

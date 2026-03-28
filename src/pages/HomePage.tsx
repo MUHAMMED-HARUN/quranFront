@@ -42,6 +42,7 @@ const services = [
     { title: 'المتابعة اليومية', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'primary.main' }} />, path: '/daily-tracking', description: 'تتبع وتقييم الحفظ والمراجعة للطلاب' },
     { title: 'التقييم اليومي', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'success.main' }} />, path: '/daily-evaluations', description: 'إضافة ومتابعة تقييم الطلاب اليومي بدقة' },
     { title: 'تسجيل طلاب النطاقات', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'info.main' }} />, path: '/enroll-student-in-scope-executions', description: 'إدارة تسجيل الطلاب في النطاقات والفصول الدراسية' },
+    { title: 'تسجيل طلاب التفاصيل', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'warning.main' }} />, path: '/enroll-student-in-scope-execution-details', description: 'إدارة تسجيل الطلاب في النطاقات التفصيلية' },
 ];
 
 export const HomePage = () => {

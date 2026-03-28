@@ -15,6 +15,10 @@ export const scopeExecutionDetailService = {
         return api.get(`/ScopeExecutionDetails/${id}`) as unknown as Promise<TResult<ScopeExecutionDetail>>;
     },
 
+    getByScopeExecutionId: (scopeExecutionId: string): Promise<TResult<ScopeExecutionDetail[]>> => {
+        return api.get(`/ScopeExecutionDetails/scopeExecution/${scopeExecutionId}`) as unknown as Promise<TResult<ScopeExecutionDetail[]>>;
+    },
+
     create: (data: CreateScopeExecutionDetailCommand): Promise<TResult<string>> => {
         return api.post("/ScopeExecutionDetails", data) as unknown as Promise<TResult<string>>;
     },

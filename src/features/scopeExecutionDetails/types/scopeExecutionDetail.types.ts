@@ -9,6 +9,7 @@ export interface ScopeExecutionDetail {
     ScopeTo?: number | null;
     ScopeUnitTypeID?: string | null;
     Notes?: string | null;
+    PrevScopeExecutionDetailID?: string | null;
 }
 
 export interface CreateScopeExecutionDetailCommand {
@@ -19,6 +20,7 @@ export interface CreateScopeExecutionDetailCommand {
     ScopeTo?: number | null;
     ScopeUnitTypeID?: string | null;
     Notes?: string | null;
+    PrevScopeExecutionDetailID?: string | null;
 }
 
 export interface UpdateScopeExecutionDetailCommand extends CreateScopeExecutionDetailCommand {
@@ -32,5 +34,6 @@ export const ScopeExecutionDetailSchema = z.object({
     ScopeFrom: z.coerce.number().optional().nullable(),
     ScopeTo: z.coerce.number().optional().nullable(),
     ScopeUnitTypeID: z.string().optional().nullable(),
-    Notes: z.string().optional().nullable()
+    Notes: z.string().optional().nullable(),
+    PrevScopeExecutionDetailID: z.string().optional().nullable()
 });

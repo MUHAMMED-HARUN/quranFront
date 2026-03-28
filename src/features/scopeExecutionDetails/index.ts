@@ -4,4 +4,5 @@ export * from "./store/scopeExecutionDetailStore";
 export * from "./hooks/useScopeExecutionDetails";
 export * from "./components/ScopeExecutionDetailTable";
 export * from "./components/ScopeExecutionDetailForm";
+export * from "./components/ScopeExecutionDetailCard";
 export * from "./pages/ScopeExecutionDetailsPage";

@@ -25,6 +25,7 @@ import { AssessmentScopesPage } from './features/assessmentScopes/pages/Assessme
 import { ScopeExecutionsPage } from './features/scopeExecutions/pages/ScopeExecutionsPage';
 import { ScopeExecutionDetailsPage } from './features/scopeExecutionDetails/pages/ScopeExecutionDetailsPage';
 import { EnrollStudentInScopeExecutionsPage } from './features/enrollStudentInScopeExecutions/pages';
+import EnrollStudentInScopeExecutionDetailsPage from './features/enrollStudentInScopeExecutionDetails/pages/EnrollStudentInScopeExecutionDetails';
 import { DailyTrackingsPage } from './features/dailyTrackings/pages/DailyTrackingsPage';
 import { DailyEvaluationsPage } from './features/dailyEvaluations/pages/DailyEvaluationsPage';
 import { StudentAssessmentsPage } from './features/studentAssessments/pages/StudentAssessmentsPage';
@@ -61,6 +62,7 @@ function App() {
             <Route path="/scope-executions" element={<ScopeExecutionsPage />} />
             <Route path="/scope-execution-details" element={<ScopeExecutionDetailsPage />} />
             <Route path="/enroll-student-in-scope-executions" element={<EnrollStudentInScopeExecutionsPage />} />
+            <Route path="/enroll-student-in-scope-execution-details" element={<EnrollStudentInScopeExecutionDetailsPage />} />
             <Route path="/daily-tracking" element={<DailyTrackingsPage />} />
             <Route path="/daily-evaluations" element={<DailyEvaluationsPage />} />
             <Route path="/student-assessments" element={<StudentAssessmentsPage />} />

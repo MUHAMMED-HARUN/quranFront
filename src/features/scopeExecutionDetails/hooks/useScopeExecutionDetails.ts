@@ -17,6 +17,22 @@ export const useScopeExecutionDetailsQuery = () => {
     });
 };
 
+export const useScopeExecutionDetailsByExecutionIdQuery = (scopeExecutionId?: string) => {
+    return useQuery({
+        queryKey: ["scopeExecutionDetails", "byScopeExecution", scopeExecutionId],
+        queryFn: () => scopeExecutionDetailService.getByScopeExecutionId(scopeExecutionId!),
+        enabled: !!scopeExecutionId
+    });
+};
+
+export const useScopeExecutionDetailQuery = (id: string | null) => {
+    return useQuery({
+        queryKey: ["scopeExecutionDetails", id],
+        queryFn: () => scopeExecutionDetailService.getById(id!),
+        enabled: !!id
+    });
+};
+
 export const useCreateScopeExecutionDetailMutation = () => {
     const queryClient = useQueryClient();
     return useMutation({

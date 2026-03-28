@@ -12,11 +12,11 @@ import {
     Box,
     Typography,
 } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import { useScopeExecutionDetailsQuery, useDeleteScopeExecutionDetailMutation } from "../hooks/useScopeExecutionDetails";
 import { useScopeExecutionDetailStore } from "../store/scopeExecutionDetailStore";
 
-export const ScopeExecutionDetailTable = ({ onOpenForm, onOpenView }: { onOpenForm: (item: any) => void; onOpenView: (item: any) => void }) => {
+export const ScopeExecutionDetailTable = ({ onOpenForm, onOpenView, onEnrollStudent }: { onOpenForm: (item: any) => void; onOpenView: (item: any) => void; onEnrollStudent: (item: any) => void }) => {
     const { data: response, isLoading } = useScopeExecutionDetailsQuery();
     const deleteMutation = useDeleteScopeExecutionDetailMutation();
     const { selectedIds, setSelectedIds } = useScopeExecutionDetailStore();
@@ -86,6 +86,9 @@ export const ScopeExecutionDetailTable = ({ onOpenForm, onOpenView }: { onOpenFo
                                 </TableCell>
                                 <TableCell>
                                     <Box display="flex" gap={1}>
+                                        <IconButton color="success" onClick={() => onEnrollStudent(detail)} title="تسجيل طالب">
+                                            <PersonAddIcon />
+                                        </IconButton>
                                         <IconButton color="info" onClick={() => onOpenView(detail)}>
                                             <VisibilityIcon />
                                         </IconButton>

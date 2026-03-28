@@ -8,6 +8,10 @@ interface ScopeExecutionDetailStore {
     filters: { search: string };
     setFilters: (filters: Partial<{ search: string }>) => void;
     clearFilters: () => void;
+
+    isCardOpen: boolean;
+    openCard: () => void;
+    closeCard: () => void;
 }
 
 export const useScopeExecutionDetailStore = create<ScopeExecutionDetailStore>((set) => ({
@@ -18,5 +22,9 @@ export const useScopeExecutionDetailStore = create<ScopeExecutionDetailStore>((s
     filters: { search: "" },
     setFilters: (newFilters) =>
         set((state) => ({ filters: { ...state.filters, ...newFilters } })),
-    clearFilters: () => set({ filters: { search: "" } })
+    clearFilters: () => set({ filters: { search: "" } }),
+
+    isCardOpen: false,
+    openCard: () => set({ isCardOpen: true }),
+    closeCard: () => set({ isCardOpen: false })
 }));

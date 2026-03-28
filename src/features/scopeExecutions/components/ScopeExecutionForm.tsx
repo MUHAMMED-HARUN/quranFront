@@ -17,7 +17,8 @@ import { useScopeExecutionStore } from "../store/scopeExecutionStore";
 import {
     useCreateScopeExecutionMutation,
     useUpdateScopeExecutionMutation,
-    useScopeExecutionsQuery
+    useScopeExecutionsQuery,
+    useSearchScopeExecutionsQuery
 } from "../hooks/useScopeExecutions";
 import { ScopeExecutionSchema } from "../types/scopeExecution.types";
 import { useSearchAssessmentScopesQuery } from "../../assessmentScopes/hooks";
@@ -40,7 +41,8 @@ export const ScopeExecutionForm = () => {
             Id: "",
             Name: "",
             AssessmentScopeID: "",
-            Description: ""
+            Description: "",
+            PrevScopeExecutionID: null
         },
     });
 
@@ -48,20 +50,26 @@ export const ScopeExecutionForm = () => {
     const { data: scopeRes, isFetching: isScopeSearching } = useSearchAssessmentScopesQuery(scopeSearch);
     const scopeOptions = Array.isArray(scopeRes) ? scopeRes : ((scopeRes as any)?.Value || []);
 
+    const [prevScopeSearch, setPrevScopeSearch] = useState("");
+    const { data: prevScopeRes, isFetching: isPrevScopeSearching } = useSearchScopeExecutionsQuery(prevScopeSearch);
+    const prevScopeOptions = Array.isArray(prevScopeRes) ? prevScopeRes : ((prevScopeRes as any)?.Value || []);
+
     useEffect(() => {
         if (isEditing && selectedItem) {
             reset({
                 Id: selectedItem.Id || selectedItem.ID,
                 Name: selectedItem.Name || "",
                 AssessmentScopeID: selectedItem.AssessmentScopeID || "",
-                Description: selectedItem.Description || ""
+                Description: selectedItem.Description || "",
+                PrevScopeExecutionID: selectedItem.PrevScopeExecutionID || null
             });
         } else if (!isEditing) {
             reset({
                 Id: "",
                 Name: "",
                 AssessmentScopeID: "",
-                Description: ""
+                Description: "",
+                PrevScopeExecutionID: null
             });
             setScopeSearch("");
         }
@@ -134,6 +142,47 @@ export const ScopeExecutionForm = () => {
                                                 endAdornment: (
                                                     <React.Fragment>
                                                         {isScopeSearching ? <CircularProgress color="inherit" size={20} /> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </React.Fragment>
+                                                ),
+                                            }}
+                                        />
+                                    )}
+                                />
+                            )}
+                        />
+
+                        {/* Prev Scope Execution Autocomplete */}
+                        <Controller
+                            name="PrevScopeExecutionID"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <Autocomplete
+                                    options={prevScopeOptions}
+                                    getOptionLabel={(option: any) => option.Name || ""}
+                                    isOptionEqualToValue={(option, value) => (option.Id || option.ID) === (value?.Id || value?.ID || value)}
+                                    loading={isPrevScopeSearching}
+                                    onInputChange={(e, newInputValue) => setPrevScopeSearch(newInputValue)}
+                                    onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || "") : null)}
+                                    value={prevScopeOptions.find((opt: any) => (opt.Id || opt.ID) === field.value) || null}
+                                    renderOption={(props, option: any) => (
+                                        <li {...props} key={option.Id || option.ID}>
+                                            <Typography variant="body1" fontWeight="bold">
+                                                {option.Name}
+                                            </Typography>
+                                        </li>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="التنفيذ السابق (اختياري)"
+                                            error={!!fieldState.error}
+                                            helperText={fieldState.error?.message}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <React.Fragment>
+                                                        {isPrevScopeSearching ? <CircularProgress color="inherit" size={20} /> : null}
                                                         {params.InputProps.endAdornment}
                                                     </React.Fragment>
                                                 ),
