@@ -12,6 +12,8 @@ import {
     Autocomplete,
     TextField,
     Typography,
+    FormControlLabel,
+    Checkbox
 } from "@mui/material";
 import { useScopeExecutionStore } from "../store/scopeExecutionStore";
 import {
@@ -42,7 +44,8 @@ export const ScopeExecutionForm = () => {
             Name: "",
             AssessmentScopeID: "",
             Description: "",
-            PrevScopeExecutionID: null
+            PrevScopeExecutionID: null,
+            HasTest: false
         },
     });
 
@@ -61,7 +64,8 @@ export const ScopeExecutionForm = () => {
                 Name: selectedItem.Name || "",
                 AssessmentScopeID: selectedItem.AssessmentScopeID || "",
                 Description: selectedItem.Description || "",
-                PrevScopeExecutionID: selectedItem.PrevScopeExecutionID || null
+                PrevScopeExecutionID: selectedItem.PrevScopeExecutionID || null,
+                HasTest: selectedItem.HasTest || false
             });
         } else if (!isEditing) {
             reset({
@@ -69,7 +73,8 @@ export const ScopeExecutionForm = () => {
                 Name: "",
                 AssessmentScopeID: "",
                 Description: "",
-                PrevScopeExecutionID: null
+                PrevScopeExecutionID: null,
+                HasTest: false
             });
             setScopeSearch("");
         }
@@ -107,6 +112,22 @@ export const ScopeExecutionForm = () => {
                                     error={!!fieldState.error}
                                     helperText={fieldState.error?.message}
                                     fullWidth
+                                />
+                            )}
+                        />
+
+                        <Controller
+                            name="HasTest"
+                            control={control}
+                            render={({ field }) => (
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={!!field.value}
+                                            onChange={(e) => field.onChange(e.target.checked)}
+                                        />
+                                    }
+                                    label="يوجد اختبار اجباري لاجتياز هذه المرحلة"
                                 />
                             )}
                         />

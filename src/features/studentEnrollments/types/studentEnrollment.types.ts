@@ -1,12 +1,14 @@
 export interface StudentEnrollment {
     StudentEnrollmentID: string;
     StudentID: string;
+    StudentName?: string;
+    NationalNumber?: string;
     GroupID: string;
+    GroupName?: string;
     Date: string; // ISO Date String
-
-    // Optional navigation properties if they arrive from GET queries
-    Student?: any;
-    Group?: any;
+    IsActive?: boolean;
+    HasInProgressDetails?: boolean;
+    HasPendingOrApprovedNominations?: boolean;
 }
 
 export interface CreateStudentEnrollmentCommand {

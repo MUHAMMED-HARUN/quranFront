@@ -32,7 +32,8 @@ import {
     Group as GroupIcon,
     AssignmentInd as AssignmentIndIcon,
     HowToReg as HowToRegIcon,
-    Category as CategoryIcon
+    Category as CategoryIcon,
+    Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -75,6 +76,9 @@ export const Layout = ({ children }: Props) => {
         { text: 'تسجيل طلاب النطاقات', icon: <HowToRegIcon />, path: '/enroll-student-in-scope-executions' },
         { text: 'التقييم اليومي', icon: <CategoryIcon />, path: '/daily-tracking' },
         { text: 'تقييمات الطلاب', icon: <CategoryIcon />, path: '/student-assessments' },
+        { text: 'ترشيحات الاختبارات', icon: <HowToRegIcon />, path: '/test-nominations' },
+        { text: 'جلسات الاختبار', icon: <CategoryIcon />, path: '/test-sessions' },
+        { text: 'نتائج الاختبارات', icon: <AssessmentIcon />, path: '/test-result-details' },
     ];
 
     const drawer = (

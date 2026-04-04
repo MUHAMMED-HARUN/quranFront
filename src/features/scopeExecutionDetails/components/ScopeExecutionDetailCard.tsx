@@ -76,15 +76,15 @@ export const ScopeExecutionDetailCard = () => {
             <DialogContent sx={{ p: 0 }}>
                 <List disablePadding>
                     <ListItem>
-                        <ListItemText primary="معرف التنفيذ (Scope Execution)" secondary={detail.ScopeExecution?.Name || detail.ScopeExecutionID} />
+                        <ListItemText primary="اسم التنفيذ" secondary={detail.ScopeExecutionName || detail.ScopeExecutionID} />
                     </ListItem>
                     <Divider />
                     <ListItem>
-                        <ListItemText primary="المجموعة (Group)" secondary={detail.Group?.GroupName || detail.GroupID} />
+                        <ListItemText primary="اسم المجموعة" secondary={detail.GroupName || detail.GroupID} />
                     </ListItem>
                     <Divider />
                     <ListItem>
-                        <ListItemText primary="المادة (Matter)" secondary={detail.Matter?.MatterName || detail.MatterID} />
+                        <ListItemText primary="اسم المادة" secondary={detail.MatterName || detail.MatterID} />
                     </ListItem>
                     <Divider />
                     <ListItem>
@@ -96,7 +96,7 @@ export const ScopeExecutionDetailCard = () => {
                     </ListItem>
                     <Divider />
                     <ListItem>
-                        <ListItemText primary="نوع الوحدة (Unit Type)" secondary={detail.ScopeUnitType?.Name || detail.ScopeUnitTypeID || "-"} />
+                        <ListItemText primary="اسم الوحدة" secondary={detail.ScopeUnitTypeName || detail.ScopeUnitTypeID || "-"} />
                     </ListItem>
                     <Divider />
                     <ListItem>

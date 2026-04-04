@@ -1,10 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button, Paper, Stack } from "@mui/material";
 import {
     Add as AddIcon,
     Edit as EditIcon,
     Delete as DeleteIcon,
     Visibility as VisibilityIcon,
+    People as PeopleIcon,
 } from "@mui/icons-material";
 
 
@@ -15,6 +17,7 @@ import { GroupTable, GroupForm, GroupCard } from "../components";
 export const GroupsPage = () => {
     const { selectedIds, openForm, openCard, clearSelection } = useGroupStore();
     const deleteMutation = useDeleteGroupMutation();
+    const navigate = useNavigate();
 
     const handleAdd = () => {
         openForm();
@@ -29,6 +32,12 @@ export const GroupsPage = () => {
     const handleViewCard = () => {
         if (selectedIds.length === 1) {
             openCard();
+        }
+    };
+
+    const handleViewStudents = () => {
+        if (selectedIds.length === 1) {
+            navigate(`/groups/${selectedIds[0]}/students`);
         }
     };
 
@@ -78,6 +87,16 @@ export const GroupsPage = () => {
                         disabled={selectedIds.length !== 1}
                     >
                         عرض البيانات
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<PeopleIcon />}
+                        onClick={handleViewStudents}
+                        disabled={selectedIds.length !== 1}
+                    >
+                        عرض الطلاب
                     </Button>
 
                     <Button

@@ -42,7 +42,10 @@ const services = [
     { title: 'المتابعة اليومية', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'primary.main' }} />, path: '/daily-tracking', description: 'تتبع وتقييم الحفظ والمراجعة للطلاب' },
     { title: 'التقييم اليومي', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'success.main' }} />, path: '/daily-evaluations', description: 'إضافة ومتابعة تقييم الطلاب اليومي بدقة' },
     { title: 'تسجيل طلاب النطاقات', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'info.main' }} />, path: '/enroll-student-in-scope-executions', description: 'إدارة تسجيل الطلاب في النطاقات والفصول الدراسية' },
-    { title: 'تسجيل طلاب التفاصيل', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'warning.main' }} />, path: '/enroll-student-in-scope-execution-details', description: 'إدارة تسجيل الطلاب في النطاقات التفصيلية' },
+    { title: 'تسجيل طلاب التفاصيل', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'success.main' }} />, path: '/student-scope-executions-details-registers', description: 'إدارة تسجيل الطلاب في النطاقات التفصيلية (جديد)' },
+    { title: 'ترشيحات الاختبارات', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'primary.main' }} />, path: '/test-nominations', description: 'إضافة ومتابعة ترشيحات الطلاب للاختبارات' },
+    { title: 'جلسات الاختبار', icon: <CategoryIcon sx={{ fontSize: 60, color: 'warning.main' }} />, path: '/test-sessions', description: 'إدارة لجان ومواعيد جلسات المُمتحنين' },
+    { title: 'نتائج الاختبارات', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'info.main' }} />, path: '/test-result-details', description: 'إدارة وتسجيل تفاصيل تقييم نتائج الطلاب' },
 ];
 
 export const HomePage = () => {

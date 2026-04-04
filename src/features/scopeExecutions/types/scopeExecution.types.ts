@@ -6,6 +6,7 @@ export interface ScopeExecution {
     AssessmentScopeID: string;
     Description?: string;
     PrevScopeExecutionID?: string | null;
+    HasTest: boolean;
 }
 
 export interface CreateScopeExecutionCommand {
@@ -13,6 +14,7 @@ export interface CreateScopeExecutionCommand {
     AssessmentScopeID: string;
     Description?: string;
     PrevScopeExecutionID?: string | null;
+    HasTest: boolean;
 }
 
 export interface UpdateScopeExecutionCommand extends CreateScopeExecutionCommand {
@@ -23,5 +25,6 @@ export const ScopeExecutionSchema = z.object({
     Name: z.string().min(1, "الاسم مطلوب"),
     AssessmentScopeID: z.string().min(1, "نطاق التقييم مطلوب"),
     Description: z.string().optional().nullable(),
-    PrevScopeExecutionID: z.string().optional().nullable()
+    PrevScopeExecutionID: z.string().optional().nullable(),
+    HasTest: z.boolean().optional().default(false)
 });

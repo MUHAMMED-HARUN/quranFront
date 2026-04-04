@@ -10,6 +10,7 @@ export interface ScopeExecutionDetail {
     ScopeUnitTypeID?: string | null;
     Notes?: string | null;
     PrevScopeExecutionDetailID?: string | null;
+    HasTest: boolean;
 }
 
 export interface CreateScopeExecutionDetailCommand {
@@ -21,6 +22,7 @@ export interface CreateScopeExecutionDetailCommand {
     ScopeUnitTypeID?: string | null;
     Notes?: string | null;
     PrevScopeExecutionDetailID?: string | null;
+    HasTest: boolean;
 }
 
 export interface UpdateScopeExecutionDetailCommand extends CreateScopeExecutionDetailCommand {
@@ -28,6 +30,8 @@ export interface UpdateScopeExecutionDetailCommand extends CreateScopeExecutionD
 }
 
 export const ScopeExecutionDetailSchema = z.object({
+    Id: z.string().optional().nullable(),
+    ScopeExecutionDetailsid: z.string().optional().nullable(),
     ScopeExecutionID: z.string().min(1, "التنفيذ مطلوب"),
     GroupID: z.string().min(1, "المجموعة مطلوبة"),
     MatterID: z.string().min(1, "المادة/المقرر مطلوب"),
@@ -35,5 +39,6 @@ export const ScopeExecutionDetailSchema = z.object({
     ScopeTo: z.coerce.number().optional().nullable(),
     ScopeUnitTypeID: z.string().optional().nullable(),
     Notes: z.string().optional().nullable(),
-    PrevScopeExecutionDetailID: z.string().optional().nullable()
+    PrevScopeExecutionDetailID: z.string().optional().nullable(),
+    HasTest: z.boolean().optional().default(false)
 });

@@ -8,6 +8,7 @@ export interface DailyEvaluation {
     To: number;
     UnitTypeID: string;
     MatterID: string;
+    ScopeExecutionDetailID?: string;
     LevelID: number;
     MatterName?: string;
     StudentFullName?: string;

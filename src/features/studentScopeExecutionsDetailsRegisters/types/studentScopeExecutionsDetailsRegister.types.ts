@@ -9,6 +9,21 @@ export interface StudentScopeExecutionsDetailsRegister {
     NationalNumber?: string | null;
     Status: number;
     StartDate?: string | null;
+    Notes?: string | null;
+}
+
+export interface StudentScopeExecutionsDetailsRegisterDetailedDto {
+    Id: string;
+    ScopeExecutionDetailID: string;
+    StudentEnrollmentID: string;
+    StudentName?: string | null;
+    GroupName?: string | null;
+    ScopeExecutionName?: string | null;
+    ScopeUnitTypeName?: string | null;
+    ScopeFrom?: number | null;
+    ScopeTo?: number | null;
+    Status: number;
+    StartDate?: string | null;
     CompletionDate?: string | null;
     Notes?: string | null;
 }

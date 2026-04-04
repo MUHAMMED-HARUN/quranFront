@@ -5,7 +5,14 @@ import { CreateStudentScopeExecutionsDetailsRegisterCommand, UpdateStudentScopeE
 export const useStudentScopeExecutionsDetailsRegistersQuery = () => {
     return useQuery({
         queryKey: ['studentScopeExecutionsDetailsRegisters'],
-        queryFn: studentScopeExecutionsDetailsRegisterService.getAll,
+        select: (data: any) => data?.Value || data,
+    });
+};
+
+export const useStudentScopeExecutionsDetailsRegistersWithDetailsQuery = () => {
+    return useQuery({
+        queryKey: ['studentScopeExecutionsDetailsRegistersWithDetails'],
+        queryFn: studentScopeExecutionsDetailsRegisterService.getAllWithDetails,
         select: (data: any) => data?.Value || data,
     });
 };

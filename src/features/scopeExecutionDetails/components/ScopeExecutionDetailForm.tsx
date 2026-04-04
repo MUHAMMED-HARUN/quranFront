@@ -13,13 +13,16 @@ import {
     TextField,
     Typography,
     MenuItem,
+    FormControlLabel,
+    Checkbox
 } from "@mui/material";
 
 import { useScopeExecutionDetailStore } from "../store/scopeExecutionDetailStore";
 import {
     useCreateScopeExecutionDetailMutation,
     useUpdateScopeExecutionDetailMutation,
-    useScopeExecutionDetailsByExecutionIdQuery
+    useScopeExecutionDetailsByExecutionIdQuery,
+    useScopeExecutionDetailQuery
 } from "../hooks/useScopeExecutionDetails";
 import { ScopeExecutionDetailSchema } from "../types/scopeExecutionDetail.types";
 
@@ -30,6 +33,10 @@ import { useScopeUnitTypesQuery } from "../../scopeUnitTypes/hooks";
 
 export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { isOpen: boolean, onClose: () => void, selectedItem?: any }) => {
     const isEditing = !!selectedItem;
+    const detailId = isEditing ? (selectedItem?.Id || selectedItem?.ID) : null;
+    const { data: detailResponse } = useScopeExecutionDetailQuery(detailId);
+    const detailData = isEditing ? ((detailResponse as any)?.Value || detailResponse) : null;
+
     const createMutation = useCreateScopeExecutionDetailMutation();
     const updateMutation = useUpdateScopeExecutionDetailMutation();
 
@@ -44,7 +51,8 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
             ScopeTo: null,
             ScopeUnitTypeID: "",
             Notes: "",
-            PrevScopeExecutionDetailID: null
+            PrevScopeExecutionDetailID: null,
+            HasTest: false
         },
     });
 
@@ -71,18 +79,22 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
     const previousDetailsOptions = Array.isArray(previousDetailsRes) ? previousDetailsRes : ((previousDetailsRes as any)?.Value || []);
 
     useEffect(() => {
-        if (isEditing && selectedItem) {
+        if (isEditing && detailData) {
             reset({
-                Id: selectedItem.Id || selectedItem.ID,
-                ScopeExecutionID: selectedItem.ScopeExecutionID || "",
-                GroupID: selectedItem.GroupID || "",
-                MatterID: selectedItem.MatterID || "",
-                ScopeFrom: selectedItem.ScopeFrom ?? null,
-                ScopeTo: selectedItem.ScopeTo ?? null,
-                ScopeUnitTypeID: selectedItem.ScopeUnitTypeID || "",
-                Notes: selectedItem.Notes || "",
-                PrevScopeExecutionDetailID: selectedItem.PrevScopeExecutionDetailID || null
+                Id: detailData.Id || detailData.ID,
+                ScopeExecutionID: detailData.ScopeExecutionID || "",
+                GroupID: detailData.GroupID || "",
+                MatterID: detailData.MatterID || "",
+                ScopeFrom: detailData.ScopeFrom ?? null,
+                ScopeTo: detailData.ScopeTo ?? null,
+                ScopeUnitTypeID: detailData.ScopeUnitTypeID || "",
+                Notes: detailData.Notes || "",
+                PrevScopeExecutionDetailID: detailData.PrevScopeExecutionDetailID || null,
+                HasTest: detailData.HasTest || false
             });
+            if (detailData.ScopeExecutionName) setExecutionSearch(detailData.ScopeExecutionName);
+            if (detailData.GroupName) setGroupSearch(detailData.GroupName);
+            if (detailData.MatterName) setMatterSearch(detailData.MatterName);
         } else if (!isEditing) {
             reset({
                 Id: "",
@@ -93,7 +105,8 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                 ScopeTo: null,
                 ScopeUnitTypeID: "",
                 Notes: "",
-                PrevScopeExecutionDetailID: null
+                PrevScopeExecutionDetailID: null,
+                HasTest: false
             });
             setExecutionSearch("");
             setGroupSearch("");
@@ -107,7 +120,7 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
     };
 
     const onSubmit = (data: any) => {
-        const payload = { ...data };
+        const payload = { ...data, ScopeExecutionDetailsid: data.Id || data.ScopeExecutionDetailsid };
         if (!payload.ScopeUnitTypeID) delete payload.ScopeUnitTypeID;
         if (!payload.Notes) delete payload.Notes;
 
@@ -139,6 +152,12 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                                     loading={isExecutionSearching}
                                     onInputChange={(e, newInputValue) => setExecutionSearch(newInputValue)}
                                     onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.ProgramID || newValue.ClassID || newValue.GroupID || newValue.SubjectID || newValue.StudentID || "") : "")}
+                                    value={
+                                        field.value 
+                                            ? executionOptions.find((opt: any) => (opt.Id || opt.ID || opt.ProgramID || opt.ClassID || opt.GroupID || opt.SubjectID || opt.StudentID) === field.value) 
+                                              || (detailData?.ScopeExecutionID === field.value && detailData?.ScopeExecutionName ? { Id: detailData.ScopeExecutionID, Name: detailData.ScopeExecutionName } : null)
+                                            : null
+                                    }
                                     renderOption={(props, option: any) => (
                                         <li {...props} key={option.Id || option.ID || option.ProgramID || option.ClassID || option.GroupID || option.SubjectID || option.StudentID}>
                                             <Typography variant="body1" fontWeight="bold">
@@ -179,6 +198,12 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                                     loading={isGroupSearching}
                                     onInputChange={(e, newInputValue) => setGroupSearch(newInputValue)}
                                     onChange={(e, newValue: any) => field.onChange(newValue ? newValue.GroupID : "")}
+                                    value={
+                                        field.value
+                                            ? groupOptions.find((opt: any) => opt.GroupID === field.value)
+                                              || (detailData?.GroupID === field.value && detailData?.GroupName ? { GroupID: detailData.GroupID, GroupName: detailData.GroupName } : null)
+                                            : null
+                                    }
                                     renderOption={(props, option: any) => (
                                         <li {...props} key={option.GroupID}>
                                             <Box display="flex" flexDirection="column">
@@ -218,11 +243,17 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                             render={({ field, fieldState }) => (
                                 <Autocomplete
                                     options={matterOptions}
-                                    getOptionLabel={(option: any) => option.Name || ""}
+                                    getOptionLabel={(option: any) => option.Name || option.MatterName || ""}
                                     isOptionEqualToValue={(option, value) => (option.Id || option.ID || option.MatterID) === (value?.Id || value?.ID || value?.MatterID || value)}
                                     loading={isMatterSearching}
                                     onInputChange={(e, newInputValue) => setMatterSearch(newInputValue)}
                                     onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.MatterID || "") : "")}
+                                    value={
+                                        field.value
+                                            ? matterOptions.find((opt: any) => (opt.Id || opt.ID || opt.MatterID) === field.value)
+                                              || (detailData?.MatterID === field.value && detailData?.MatterName ? { Id: detailData.MatterID, Name: detailData.MatterName } : null)
+                                            : null
+                                    }
                                     renderOption={(props, option: any) => (
                                         <li {...props} key={option.Id || option.ID || option.MatterID}>
                                             <Typography variant="body1" fontWeight="bold">
@@ -274,6 +305,22 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                             )}
                         />
 
+                        <Controller
+                            name="HasTest"
+                            control={control}
+                            render={({ field }) => (
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={!!field.value}
+                                            onChange={(e) => field.onChange(e.target.checked)}
+                                        />
+                                    }
+                                    label="يوجد اختبار اجباري لاجتياز هذه المرحلة"
+                                />
+                            )}
+                        />
+
                         {/* Previous Scope Execution Detail Autocomplete */}
                         <Controller
                             name="PrevScopeExecutionDetailID"
@@ -281,11 +328,16 @@ export const ScopeExecutionDetailForm = ({ isOpen, onClose, selectedItem }: { is
                             render={({ field, fieldState }) => (
                                 <Autocomplete
                                     options={previousDetailsOptions}
-                                    getOptionLabel={(option: any) => `من ${option.ScopeFrom} إلى ${option.ScopeTo} (${option.MatterName || option.MatterID})`}
+                                    getOptionLabel={(option: any) => `من ${option.ScopeFrom} إلى ${option.ScopeTo} (${option.MatterName || option.Matter?.Name || option.MatterID})`}
                                     isOptionEqualToValue={(option, value) => option.Id === (value?.Id || value)}
                                     loading={isPreviousDetailsLoading}
                                     onChange={(e, newValue: any) => field.onChange(newValue ? newValue.Id : null)}
-                                    value={previousDetailsOptions.find((opt: any) => opt.Id === field.value) || null}
+                                    value={
+                                        field.value 
+                                            ? previousDetailsOptions.find((opt: any) => opt.Id === field.value) 
+                                              || (detailData?.PrevScopeExecutionDetailID === field.value && detailData?.PrevScopeExecutionDetail ? detailData.PrevScopeExecutionDetail : null)
+                                            : null
+                                    }
                                     renderOption={(props, option: any) => (
                                         <li {...props} key={option.Id}>
                                             <Typography variant="body2">
