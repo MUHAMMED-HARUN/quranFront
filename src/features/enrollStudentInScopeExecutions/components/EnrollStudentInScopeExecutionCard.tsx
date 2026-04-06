@@ -19,19 +19,17 @@ interface EnrollStudentInScopeExecutionCardProps {
 }
 
 const statusTextMap: Record<number, string> = {
-    [EnrollmentStatus.Enrolled]: "مسجل",
+    [EnrollmentStatus.Pending]: "معلق",
     [EnrollmentStatus.InProgress]: "قيد التنفيذ",
     [EnrollmentStatus.Completed]: "مكتمل",
-    [EnrollmentStatus.Dropped]: "منسحب",
-    [EnrollmentStatus.Suspended]: "معلق",
+    [EnrollmentStatus.Failed]: "فاشل",
 };
 
 const statusColorMap: Record<number, "default" | "primary" | "secondary" | "success" | "warning" | "error"> = {
-    [EnrollmentStatus.Enrolled]: "primary",
+    [EnrollmentStatus.Pending]: "default",
     [EnrollmentStatus.InProgress]: "warning",
     [EnrollmentStatus.Completed]: "success",
-    [EnrollmentStatus.Dropped]: "error",
-    [EnrollmentStatus.Suspended]: "default",
+    [EnrollmentStatus.Failed]: "error",
 };
 
 export const EnrollStudentInScopeExecutionCard = ({ isOpen, onClose, item }: EnrollStudentInScopeExecutionCardProps) => {

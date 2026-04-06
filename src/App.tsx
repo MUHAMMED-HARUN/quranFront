@@ -34,6 +34,9 @@ import { MattersPage } from './features/matters/pages';
 import { TestNominationsPage } from './features/testNominations/pages/TestNominationsPage';
 import { TestSessionsPage } from './features/testSessions/pages/TestSessionsPage';
 import { TestResultDetailsPage } from './features/testResultDetails/pages/TestResultDetailsPage';
+import { ProgramRulesPage } from './features/programRules/pages/ProgramRulesPage';
+import { ProgressDecisionsPage } from './features/progressDecisions/pages/ProgressDecisionsPage';
+import { CompletionRecordsPage } from './features/completionRecords/pages/CompletionRecordsPage';
 
 import { HomePage } from './pages/HomePage';
 import { Layout } from './components/common/Layout';
@@ -75,6 +78,9 @@ function App() {
             <Route path="/test-nominations" element={<TestNominationsPage />} />
             <Route path="/test-sessions" element={<TestSessionsPage />} />
             <Route path="/test-result-details" element={<TestResultDetailsPage />} />
+            <Route path="/program-rules" element={<ProgramRulesPage />} />
+            <Route path="/progress-decisions" element={<ProgressDecisionsPage />} />
+            <Route path="/completion-records" element={<CompletionRecordsPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

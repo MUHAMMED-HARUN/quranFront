@@ -4,8 +4,9 @@ export enum EvaluationLevel {
     Excellent = 1,
     VeryGood = 2,
     Good = 3,
-    Weak = 4,
-    VeryWeak = 5
+    Acceptable = 4,
+    Weak = 5,
+    VeryWeak = 6
 }
 
 export interface TestResultDetailDto {

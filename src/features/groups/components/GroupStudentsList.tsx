@@ -108,11 +108,12 @@ export const GroupStudentsList = () => {
                 <DailyEvaluationForm
                     isOpen={isDailyEvaluationOpen}
                     onClose={() => setIsDailyEvaluationOpen(false)}
-                    initialStudentId={selectedStudentForEval.StudentID || (selectedStudentForEval as any).studentId}
-                    initialGroupId={groupId}
-                    initialStudentName={selectedStudentForEval.StudentName || (selectedStudentForEval as any).studentName}
-                    initialGroupName={selectedStudentForEval.GroupName || (selectedStudentForEval as any).groupName}
-                    initialStudentEnrollmentId={selectedStudentForEval.StudentEnrollmentID || (selectedStudentForEval as any).studentEnrollmentId}
+                    studentId={selectedStudentForEval.StudentID || (selectedStudentForEval as any).studentId}
+                    groupId={groupId}
+                    studentName={selectedStudentForEval.StudentName || (selectedStudentForEval as any).studentName}
+                    groupName={selectedStudentForEval.GroupName || (selectedStudentForEval as any).groupName}
+                    studentEnrollmentId={selectedStudentForEval.StudentEnrollmentID || (selectedStudentForEval as any).studentEnrollmentId}
+                    nationalNumber={selectedStudentForEval.NationalNumber || (selectedStudentForEval as any).nationalNumber}
                 />
             )}
 

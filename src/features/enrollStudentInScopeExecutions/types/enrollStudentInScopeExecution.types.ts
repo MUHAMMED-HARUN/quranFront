@@ -1,11 +1,10 @@
 import { z } from "zod";
 
 export enum EnrollmentStatus {
-    Enrolled = 1,
+    Pending = 1,
     InProgress = 2,
     Completed = 3,
-    Dropped = 4,
-    Suspended = 5
+    Failed = 4
 }
 
 export interface EnrollStudentInScopeExecution {

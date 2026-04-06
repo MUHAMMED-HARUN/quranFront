@@ -15,6 +15,10 @@ export const studentService = {
         return api.get(`/Students/search/${nationalNumber}`) as unknown as Promise<TResult<any[]>>;
     },
 
+    getByNationalNumber: (nationalNumber: string): Promise<TResult<Student>> => {
+        return api.get(`/Students/national/${nationalNumber}`) as unknown as Promise<TResult<Student>>;
+    },
+
     create: (data: SetPersonAsStudentCommand): Promise<TResult<string>> => {
         return api.post("/Students", data) as unknown as Promise<TResult<string>>;
     },

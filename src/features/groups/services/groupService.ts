@@ -23,6 +23,10 @@ export const groupService = {
         return api.get(`/Groups/search/${name}`) as unknown as Promise<TResult<Group[]>>;
     },
 
+    getByName: (name: string): Promise<TResult<Group>> => {
+        return api.get(`/Groups/name/${name}`) as unknown as Promise<TResult<Group>>;
+    },
+
     create: (data: CreateGroupCommand): Promise<TResult<string>> => {
         return api.post("/Groups", data) as unknown as Promise<TResult<string>>;
     },

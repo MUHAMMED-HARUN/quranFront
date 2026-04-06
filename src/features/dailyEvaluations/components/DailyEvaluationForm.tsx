@@ -15,30 +15,36 @@ import {
 import { DailyEvaluationSchema } from "../types/dailyEvaluation.types";
 import { useDailyEvaluationFormContextQuery } from "../hooks/useDailyEvaluationFormContextQuery";
 
-import { useSearchMattersQuery } from "../../matters/hooks/useSearchMattersQuery";
 import { useSearchStudentsByNationalNumberQuery } from "../../students/hooks/useSearchStudentsByNationalNumberQuery";
-import { useActiveEnrollStudentInScopeExecutionByStudentIdQuery } from "../../studentScopeExecutionsDetailsRegisters/hooks/useActiveEnrollStudentInScopeExecutionByStudentIdQuery";
 import { useSearchGroupsQuery } from "../../groups/hooks/useSearchGroupsQuery";
 import { useScopeUnitTypesQuery } from "../../scopeUnitTypes/hooks/useScopeUnitTypesQuery";
 import { useStudentEnrollmentByStudentAndGroupQuery } from "../../studentEnrollments/hooks/useStudentEnrollmentByStudentAndGroupQuery";
+import { usePendingRegistersByStudentEnrollmentIdQuery } from "../../studentScopeExecutionsDetailsRegisters/hooks/usePendingRegistersByStudentEnrollmentIdQuery";
 
 interface DailyEvaluationFormProps {
     isOpen?: boolean;
     onClose?: () => void;
-    initialStudentId?: string;
-    initialGroupId?: string;
-    initialStudentName?: string;
-    initialGroupName?: string;
-    initialStudentEnrollmentId?: string;
+    studentId?: string;
+    groupId?: string;
+    studentName?: string;
+    groupName?: string;
+    studentEnrollmentId?: string;
+    nationalNumber?: string;
 }
 
-export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initialGroupId, initialStudentName, initialGroupName, initialStudentEnrollmentId }: DailyEvaluationFormProps = {}) => {
+export const DailyEvaluationForm = ({ 
+    isOpen, onClose, 
+    studentId: initialStudentId, groupId: initialGroupId, 
+    studentName: initialStudentName, groupName: initialGroupName, 
+    studentEnrollmentId: initialStudentEnrollmentId,
+    nationalNumber: initialNationalNumber
+}: DailyEvaluationFormProps = {}) => {
     const store = useDailyEvaluationStore();
     const isFormOpen = isOpen !== undefined ? isOpen : store.isFormOpen;
     const closeForm = onClose !== undefined ? onClose : store.closeForm;
     const selectedIds = store.selectedIds;
+    
     const { data: listResponse } = useDailyEvaluationsQuery();
-
     const isEditing = selectedIds.length === 1;
     const editId = isEditing ? selectedIds[0] : null;
     const evaluations = Array.isArray(listResponse) ? listResponse : ((listResponse as any)?.Value || []);
@@ -62,53 +68,93 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
         },
     });
 
-    // Watch dependencies
     const selectedGroupId = watch("GroupID");
     const selectedStudentId = watch("StudentID");
     const selectedEnrollmentId = watch("StudentEnrollmentID");
     const selectedMatterId = watch("MatterID");
 
-    // Preload dependencies
-    const { data: specificEnrollmentRes } = useStudentEnrollmentByStudentAndGroupQuery(
-        !isEditing ? selectedStudentId : null,
-        !isEditing ? selectedGroupId : null
-    );
-    const specificEnrollment = (specificEnrollmentRes as any)?.Value || specificEnrollmentRes;
+    // Youtube-Style Autocomplete Pattern: Debouncing Search
+    const [studentSearch, setStudentSearch] = useState("");
+    const [debouncedStudentTerm, setDebouncedStudentTerm] = useState("");
 
-    // Derived StudentEnrollment resolver (only if we don't have an initial one)
+    const [groupSearch, setGroupSearch] = useState("");
+    const [debouncedGroupTerm, setDebouncedGroupTerm] = useState("");
+
+    // 1. Debouncing User Inputs
     useEffect(() => {
-        if (initialStudentEnrollmentId) return; // Don't override if we already have it
+        const handler = setTimeout(() => setDebouncedStudentTerm(studentSearch), 500);
+        return () => clearTimeout(handler);
+    }, [studentSearch]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedGroupTerm(groupSearch), 500);
+        return () => clearTimeout(handler);
+    }, [groupSearch]);
+
+    // 2. Fetching via CQRS Generated Search Hook
+    const { data: studentsRes, isFetching: isStudentSearching } = useSearchStudentsByNationalNumberQuery(debouncedStudentTerm);
+    const studentOptions = Array.isArray(studentsRes) ? studentsRes : ((studentsRes as any)?.Value || []);
+
+    const { data: groupsRes, isFetching: isGroupSearching } = useSearchGroupsQuery(debouncedGroupTerm);
+    const groupOptions = Array.isArray(groupsRes) ? groupsRes : ((groupsRes as any)?.Value || []);
+
+    const { data: scopeUnitsRes } = useScopeUnitTypesQuery();
+    const scopeUnitsOptions = Array.isArray(scopeUnitsRes) ? scopeUnitsRes : ((scopeUnitsRes as any)?.Value || []);
+
+    // 3. Resolving Student Enrollment dynamically just like the WiForm pseudo code logic
+    // if(groupId!="" && studentId!="") => Get StudentEnrollmentId
+    const { data: enrollmentRes, isFetching: isEnrollmentFetching } = useStudentEnrollmentByStudentAndGroupQuery(
+        (!isEditing && selectedStudentId && selectedGroupId) ? selectedStudentId : null,
+        (!isEditing && selectedStudentId && selectedGroupId) ? selectedGroupId : null
+    );
+
+    useEffect(() => {
+        if (initialStudentEnrollmentId || isEditing) return;
         
-        if (!isEditing && selectedGroupId && selectedStudentId && specificEnrollment) {
-            setValue(
-                "StudentEnrollmentID",
-                specificEnrollment.StudentEnrollmentID || specificEnrollment.studentEnrollmentID || "",
-                { shouldValidate: true }
-            );
-        } else if (!isEditing && (!selectedGroupId || !selectedStudentId)) {
+        const enrollmentValue = (enrollmentRes as any)?.Value || enrollmentRes;
+        const validEnrollmentId = enrollmentValue && (enrollmentValue.Id || enrollmentValue.ID || enrollmentValue.StudentEnrollmentID || enrollmentValue.studentEnrollmentID);
+
+        if (validEnrollmentId && selectedStudentId && selectedGroupId) {
+            setValue("StudentEnrollmentID", validEnrollmentId, { shouldValidate: true });
+        } else {
             setValue("StudentEnrollmentID", "", { shouldValidate: true });
         }
-    }, [selectedGroupId, selectedStudentId, specificEnrollment, isEditing, setValue, initialStudentEnrollmentId]);
+    }, [enrollmentRes, isEditing, setValue, selectedStudentId, selectedGroupId, initialStudentEnrollmentId]);
 
+    // 4. Fetch Details Matters using current StudentEnrollmentId
+    // DetailMatters.DataSource = GetStudentScopeExecutionDetailMatters(studentEnrollmentId)
+    const { data: pendingRegistersRes, isFetching: isMatterFetching } = usePendingRegistersByStudentEnrollmentIdQuery(
+        !isEditing ? (initialStudentEnrollmentId || selectedEnrollmentId) : null
+    );
+
+    const comboList = Array.isArray(pendingRegistersRes) ? pendingRegistersRes : ((pendingRegistersRes as any)?.Value || []);
+    
+    const matterOptions = comboList.map((detail: any) => ({
+        MatterID: detail.MatterID || detail.matterID || detail.Id || detail.ID,  
+        MatterName: detail.MatterName || detail.matterName || "?",
+        ScopeExecutionDetailID: detail.ScopeExecutionDetailID || detail.scopeExecutionDetailID
+    }));
+
+    // Form Context handling for filling From/To bounds
     const { data: formContextRes, isFetching: isContextFetching } = useDailyEvaluationFormContextQuery(
-        !isEditing ? selectedEnrollmentId : null,
+        !isEditing ? (initialStudentEnrollmentId || selectedEnrollmentId) : null,
         !isEditing ? selectedMatterId : null
     );
 
     const formContext = Array.isArray(formContextRes) ? formContextRes : ((formContextRes as any)?.value || (formContextRes as any)?.Value || formContextRes);
+    
     useEffect(() => {
         if (!isEditing && isFormOpen && formContext && !isContextFetching) {
-            const NextFrom = formContext.NextFrom ?? formContext.NextFrom ?? 1;
-            if (NextFrom !== null && NextFrom !== undefined) {
-                setValue("From", Number(NextFrom), { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-                setValue("To", Number(NextFrom), { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+            const nextFrom = formContext.NextFrom ?? formContext.nextFrom ?? 1;
+            if (nextFrom !== null && nextFrom !== undefined) {
+                setValue("From", Number(nextFrom), { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                setValue("To", Number(nextFrom), { shouldValidate: true, shouldDirty: true, shouldTouch: true });
             }
-            const unitTypeId = formContext.scopeUnitTypeID ?? formContext.ScopeUnitTypeID;
+            const unitTypeId = formContext.scopeUnitTypeID ?? formContext.ScopeUnitTypeID ?? formContext.UnitTypeID;
             if (unitTypeId) {
                 setValue("UnitTypeID", unitTypeId, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
             }
         }
-        console.log(formContext);
     }, [formContext, isContextFetching, isEditing, isFormOpen, setValue]);
 
     const toValue = watch("To");
@@ -121,10 +167,10 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
             let hasError = false;
 
             if (scopeTo !== null && scopeTo !== undefined && numToValue > Number(scopeTo)) {
-                setError("To", { type: "manual", message: `يجب أن يكون أصغر أو يساوي ${scopeTo}` });
+                setError("To", { type: "manual", message: `يجب أن يكون أصغر أو يساوي النطاق المسموح (${scopeTo})` });
                 hasError = true;
             } else if (lastEvalTo !== null && lastEvalTo !== undefined && numToValue <= Number(lastEvalTo)) {
-                setError("To", { type: "manual", message: `يجب أن يكون أكبر تماماً من تقييمه السابق (${lastEvalTo})` });
+                setError("To", { type: "manual", message: `يجب أن يكون أكبر تماماً من التقييم السابق (${lastEvalTo})` });
                 hasError = true;
             }
 
@@ -134,34 +180,7 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
         }
     }, [toValue, formContext, isEditing, setError, clearErrors, formState.errors.To]);
 
-    // Use the active ScopeExecution based on studentId to get all mapped matters
-    const { data: activeEnrollmentRes, isFetching: isMatterSearching } = useActiveEnrollStudentInScopeExecutionByStudentIdQuery(
-        !isEditing && selectedStudentId ? selectedStudentId : null
-    );
-
-    const comboList = Array.isArray(activeEnrollmentRes) ? activeEnrollmentRes : ((activeEnrollmentRes as any)?.Value || []);
-    
-    // Extract matter options and map them properly from the EnrollmentStudentDetailComboDto
-    const matterOptions = comboList.map((detail: any) => ({
-        Id: detail.MatterID || detail.matterID || detail.MatterId || detail.matterId || detail.ScopeExecutionDetailID || detail.scopeExecutionDetailID || detail.scopeExecutionDetailId, 
-        Name: `${detail.MatterName || detail.matterName || "?"}`,
-        ScopeExecutionDetailID: detail.ScopeExecutionDetailID || detail.scopeExecutionDetailID || detail.scopeExecutionDetailId,
-        MatterID: detail.MatterID || detail.matterID || detail.MatterId || detail.matterId,  
-        ScopeFrom: detail.ScopeFrom !== undefined ? detail.ScopeFrom : detail.scopeFrom,
-        ScopeTo: detail.ScopeTo !== undefined ? detail.ScopeTo : detail.scopeTo
-    }));
-
-    const [groupSearch, setGroupSearch] = useState("");
-    const { data: groupsRes, isFetching: isGroupSearching } = useSearchGroupsQuery(groupSearch);
-    const groupOptions = Array.isArray(groupsRes) ? groupsRes : ((groupsRes as any)?.Value || []);
-
-    const [studentSearch, setStudentSearch] = useState("");
-    const { data: studentsRes, isFetching: isStudentSearching } = useSearchStudentsByNationalNumberQuery(studentSearch);
-    const studentOptions = Array.isArray(studentsRes) ? studentsRes : ((studentsRes as any)?.Value || []);
-
-    const { data: scopeUnitsRes } = useScopeUnitTypesQuery();
-    const scopeUnitsOptions = Array.isArray(scopeUnitsRes) ? scopeUnitsRes : ((scopeUnitsRes as any)?.Value || []);
-
+    // Setup Initial/Editing state
     useEffect(() => {
         if (isEditing && selectedItem) {
             reset({
@@ -173,7 +192,7 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
                 MatterID: selectedItem.MatterID || "",
                 LevelID: selectedItem.LevelID !== undefined ? selectedItem.LevelID : 6
             });
-        } else if (!isEditing) {
+        } else if (!isEditing && isFormOpen) {
             reset({
                 GroupID: initialGroupId || "",
                 StudentID: initialStudentId || "",
@@ -187,6 +206,8 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
             });
             setStudentSearch("");
             setGroupSearch("");
+            setDebouncedStudentTerm("");
+            setDebouncedGroupTerm("");
         }
     }, [isEditing, selectedItem, reset, isFormOpen, initialGroupId, initialStudentId, initialStudentEnrollmentId]);
 
@@ -212,7 +233,7 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
         }
 
         const payload = {
-            StudentEnrollmentID: data.StudentEnrollmentID,
+            StudentEnrollmentID: data.StudentEnrollmentID || initialStudentEnrollmentId, // Fallback if internal isn't set but passed as prop
             Date: data.Date,
             From: Number(data.From),
             To: Number(data.To),
@@ -232,115 +253,169 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
 
     return (
         <Dialog open={isFormOpen} onClose={handleClose} maxWidth="sm" fullWidth>
-            <DialogTitle>{isEditing ? "تعديل التقييم" : "إضافة تقييم يودي"}</DialogTitle>
+            <DialogTitle>{isEditing ? "تعديل التقييم" : "إضافة تقييم يومي"}</DialogTitle>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <DialogContent dividers>
                     <Box display="flex" flexDirection="column" gap={3}>
 
-                        {/* Hidden error block for StudentEnrollment logic */}
                         {!isEditing && formState.errors.StudentEnrollmentID && (
                             <Typography color="error" variant="body2">
                                 {String(formState.errors.StudentEnrollmentID?.message || "")} - تأكد من ارتباط الطالب بالمجموعة المحددة
                             </Typography>
                         )}
 
-                            <Controller
-                                name="MatterID"
-                                control={control}
-                                render={({ field, fieldState }) => (
-                                    <Autocomplete
-                                        options={matterOptions}
-                                        getOptionLabel={(option: any) => option.Name || ""}
-                                        isOptionEqualToValue={(option, value) => (option.MatterID || option.Id) === (value?.MatterID || value?.Id || value)}
-                                        loading={isMatterSearching}
-                                        onChange={(e, newValue: any) => {
-                                             field.onChange(newValue ? (newValue.MatterID || newValue.Id) : "");
-                                             // Optionally set ScopeExecutionDetailID if we wanted it, but it uses MatterID in backend
-                                        }}
-                                        value={matterOptions.find((opt: any) => (opt.MatterID || opt.Id) === field.value) || null}
-                                        disabled={!selectedEnrollmentId} // Disable if no student is selected
-                                        renderOption={(props, option: any) => (
-                                            <li {...props} key={option.ScopeExecutionDetailID || option.Id}>
-                                                <Typography variant="body1" fontWeight="bold">{option.Name}</Typography>
-                                            </li>
-                                        )}
-                                        renderInput={(params) => <TextField {...params} label="المادة / نطاق التسميع" error={!!fieldState.error} helperText={fieldState.error?.message || (!selectedEnrollmentId ? "يرجى تعيين الطالب أولاً" : "")} />}
-                                    />
-                                )}
-                            />
-
                         {!isEditing && (
                             <>
-                                {/* Group Selection */}
+                                {/* 1. Student Selection */}
+                                {initialStudentId && (initialStudentName || initialNationalNumber) ? (
+                                    <TextField label="الطالب" value={`${initialNationalNumber || ''} ${initialStudentName || ''}`} InputProps={{ readOnly: true }} fullWidth />
+                                ) : (
+                                    <Controller
+                                        name="StudentID"
+                                        control={control}
+                                        render={({ field, fieldState }) => {
+                                            const studentVal = studentOptions.find((opt: any) => (opt.Id || opt.ID || opt.StudentID) === field.value);
+                                            return (
+                                              <Autocomplete
+                                                  options={studentOptions}
+                                                  getOptionLabel={(option: any) => `${option?.NationalNumber || ''} - ${option?.FullName || option?.Name || ""}`}
+                                                  isOptionEqualToValue={(option, value) => (option?.Id || option?.ID || option?.StudentID) === (value?.Id || value?.ID || value?.StudentID || value)}
+                                                  loading={isStudentSearching}
+                                                  onInputChange={(_, newInputValue, reason) => {
+                                                      if (reason === "input" || reason === "clear") {
+                                                          setStudentSearch(newInputValue);
+                                                      }
+                                                  }}
+                                                  onChange={(_, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.StudentID) : "")}
+                                                  value={studentVal || null}
+                                                  renderOption={(props, option: any) => (
+                                                      <li {...props} key={option.Id || option.ID || option.StudentID}>
+                                                          <Box>
+                                                              <Typography variant="body1" fontWeight="bold">{option.NationalNumber}</Typography>
+                                                              <Typography variant="body2" color="textSecondary">{option.FullName || option.Name}</Typography>
+                                                          </Box>
+                                                      </li>
+                                                  )}
+                                                  renderInput={(params) => (
+                                                      <TextField 
+                                                          {...params} 
+                                                          label="بحث عن الطالب (بالرقم الوطني)" 
+                                                          error={!!fieldState.error} 
+                                                          helperText={fieldState.error?.message} 
+                                                          InputProps={{
+                                                              ...params.InputProps,
+                                                              endAdornment: (
+                                                                  <>
+                                                                    {isStudentSearching ? <CircularProgress color="inherit" size={20} /> : null}
+                                                                    {params.InputProps.endAdornment}
+                                                                  </>
+                                                              )
+                                                          }}
+                                                      />
+                                                  )}
+                                              />
+                                            );
+                                        }}
+                                    />
+                                )}
+
+                                {/* 2. Group Selection */}
                                 {initialGroupId && initialGroupName ? (
                                     <TextField label="المجموعة" value={initialGroupName} InputProps={{ readOnly: true }} fullWidth />
                                 ) : (
                                     <Controller
                                         name="GroupID"
                                         control={control}
-                                        render={({ field, fieldState }) => (
-                                            <Autocomplete
-                                                options={groupOptions}
-                                                getOptionLabel={(option: any) => option.GroupName ? `${option.GroupName} - ${option.Code || ""}` : (option.Name ? `${option.Name} - ${option.Code || ""}` : "")}
-                                                isOptionEqualToValue={(option, value) => (option.GroupID || option.Id || option.ID) === (value?.GroupID || value?.Id || value?.ID || value)}
-                                                loading={isGroupSearching}
-                                                onInputChange={(e, newInputValue, reason) => {
-                                                    if (reason === "input" || reason === "clear") {
-                                                        setGroupSearch(newInputValue);
-                                                    }
-                                                }}
-                                                onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.GroupID || newValue.Id || newValue.ID) : "")}
-                                                value={groupOptions.find((opt: any) => (opt.GroupID || opt.Id || opt.ID) === field.value) || null}
-                                                renderOption={(props, option: any) => (
-                                                    <li {...props} key={option.GroupID || option.Id || option.ID}>
-                                                        <Box>
-                                                            <Typography variant="body1" fontWeight="bold">{option.GroupName || option.Name}</Typography>
-                                                            <Typography variant="body2" color="textSecondary">{option.Code}</Typography>
-                                                        </Box>
-                                                    </li>
-                                                )}
-                                                renderInput={(params) => <TextField {...params} label="بحث عن المجموعة (الاسم)" error={!!fieldState.error} helperText={fieldState.error?.message} />}
-                                            />
-                                        )}
-                                    />
-                                )}
-
-                                {/* Student Selection */}
-                                {initialStudentId && initialStudentName ? (
-                                    <TextField label="الطالب" value={initialStudentName} InputProps={{ readOnly: true }} fullWidth />
-                                ) : (
-                                    <Controller
-                                        name="StudentID"
-                                        control={control}
-                                        render={({ field, fieldState }) => (
-                                            <Autocomplete
-                                                options={studentOptions}
-                                                getOptionLabel={(option: any) => `${option.NationalNumber} - ${option.FullName || option.Name || ""}`}
-                                                isOptionEqualToValue={(option, value) => (option.Id || option.ID || option.PersonID) === (value?.Id || value?.ID || value?.PersonID || value)}
-                                                loading={isStudentSearching}
-                                                onInputChange={(e, newInputValue, reason) => {
-                                                    if (reason === "input" || reason === "clear") {
-                                                        setStudentSearch(newInputValue);
-                                                    }
-                                                }}
-                                                onChange={(e, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.PersonID) : "")}
-                                                value={studentOptions.find((opt: any) => (opt.Id || opt.ID || opt.PersonID) === field.value) || null}
-                                                renderOption={(props, option: any) => (
-                                                    <li {...props} key={option.Id || option.ID || option.PersonID}>
-                                                        <Box>
-                                                            <Typography variant="body1" fontWeight="bold">{option.NationalNumber}</Typography>
-                                                            <Typography variant="body2" color="textSecondary">{option.FullName || option.Name}</Typography>
-                                                        </Box>
-                                                    </li>
-                                                )}
-                                                renderInput={(params) => <TextField {...params} label="بحث عن الطالب (رقم الهوية)" error={!!fieldState.error} helperText={fieldState.error?.message} />}
-                                            />
-                                        )}
+                                        render={({ field, fieldState }) => {
+                                             const groupVal = groupOptions.find((opt: any) => (opt.Id || opt.ID || opt.GroupID) === field.value);
+                                             return (
+                                              <Autocomplete
+                                                  options={groupOptions}
+                                                  getOptionLabel={(option: any) => option?.GroupName ? `${option.GroupName} - ${option?.Code || ""}` : (option?.Name ? `${option.Name} - ${option?.Code || ""}` : "")}
+                                                  isOptionEqualToValue={(option, value) => (option?.Id || option?.ID || option?.GroupID) === (value?.Id || value?.ID || value?.GroupID || value)}
+                                                  loading={isGroupSearching}
+                                                  onInputChange={(_, newInputValue, reason) => {
+                                                      if (reason === "input" || reason === "clear") {
+                                                          setGroupSearch(newInputValue);
+                                                      }
+                                                  }}
+                                                  onChange={(_, newValue: any) => field.onChange(newValue ? (newValue.Id || newValue.ID || newValue.GroupID) : "")}
+                                                  value={groupVal || null}
+                                                  renderOption={(props, option: any) => (
+                                                      <li {...props} key={option.Id || option.ID || option.GroupID}>
+                                                          <Box>
+                                                              <Typography variant="body1" fontWeight="bold">{option.GroupName || option.Name}</Typography>
+                                                              <Typography variant="body2" color="textSecondary">{option.Code}</Typography>
+                                                          </Box>
+                                                      </li>
+                                                  )}
+                                                  renderInput={(params) => (
+                                                      <TextField 
+                                                          {...params} 
+                                                          label="بحث عن المجموعة (الاسم)" 
+                                                          error={!!fieldState.error} 
+                                                          helperText={fieldState.error?.message} 
+                                                          InputProps={{
+                                                              ...params.InputProps,
+                                                              endAdornment: (
+                                                                  <>
+                                                                    {isGroupSearching ? <CircularProgress color="inherit" size={20} /> : null}
+                                                                    {params.InputProps.endAdornment}
+                                                                  </>
+                                                              )
+                                                          }}
+                                                      />
+                                                  )}
+                                              />
+                                             )
+                                        }}
                                     />
                                 )}
                             </>
                         )}
 
+                        {/* 3. Matter Selection (Pending Subscriptions Only) */}
+                        <Controller
+                            name="MatterID"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <Autocomplete
+                                    options={matterOptions}
+                                    getOptionLabel={(option: any) => option.MatterName || ""}
+                                    isOptionEqualToValue={(option, value) => option.MatterID === (value?.MatterID || value)}
+                                    loading={isMatterFetching || isEnrollmentFetching}
+                                    onChange={(_, newValue: any) => {
+                                        field.onChange(newValue ? newValue.MatterID : "");
+                                    }}
+                                    value={matterOptions.find((opt: any) => opt.MatterID === field.value) || null}
+                                    disabled={!selectedEnrollmentId && !initialStudentEnrollmentId} // Disable if no proper enrollment is resolved
+                                    renderOption={(props, option: any) => (
+                                        <li {...props} key={option.MatterID}>
+                                            <Typography variant="body1" fontWeight="bold">{option.MatterName}</Typography>
+                                        </li>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField 
+                                            {...params} 
+                                            label="المادة / نطاق التسميع" 
+                                            error={!!fieldState.error} 
+                                            helperText={fieldState.error?.message || (!(selectedEnrollmentId || initialStudentEnrollmentId) ? "يرجى تعيين الطالب والمجموعة أولاً" : "")} 
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <>
+                                                      {(isMatterFetching || isEnrollmentFetching) ? <CircularProgress color="inherit" size={20} /> : null}
+                                                      {params.InputProps.endAdornment}
+                                                    </>
+                                                )
+                                            }}
+                                        />
+                                    )}
+                                />
+                            )}
+                        />
+
+                        {/* 4. Other Fields */}
                         <Controller
                             name="UnitTypeID"
                             control={control}
@@ -422,7 +497,7 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} disabled={isSaving}>إلغاء</Button>
-                    <Button type="submit" variant="contained" disabled={isSaving || (!isEditing && !watch("StudentEnrollmentID"))}>
+                    <Button type="submit" variant="contained" disabled={isSaving || (!isEditing && !watch("StudentEnrollmentID") && !initialStudentEnrollmentId)}>
                         {isSaving ? "جاري الحفظ..." : "حفظ"}
                     </Button>
                 </DialogActions>
@@ -430,3 +505,4 @@ export const DailyEvaluationForm = ({ isOpen, onClose, initialStudentId, initial
         </Dialog>
     );
 };
+

@@ -20,6 +20,10 @@ export const studentScopeExecutionsDetailsRegisterService = {
         return api.get(`/StudentScopeExecutionsDetailsRegisters/${id}`) as unknown as Promise<TResult<StudentScopeExecutionsDetailsRegister>>;
     },
 
+    getPendingByStudentEnrollmentId: (studentEnrollmentId: string): Promise<TResult<StudentScopeExecutionsDetailsRegisterDetailedDto[]>> => {
+        return api.get(`/StudentScopeExecutionsDetailsRegisters/PendingByStudentEnrollment/${studentEnrollmentId}`) as unknown as Promise<TResult<StudentScopeExecutionsDetailsRegisterDetailedDto[]>>;
+    },
+
     create: (data: CreateStudentScopeExecutionsDetailsRegisterCommand): Promise<TResult<string>> => {
         return api.post("/StudentScopeExecutionsDetailsRegisters", data) as unknown as Promise<TResult<string>>;
     },

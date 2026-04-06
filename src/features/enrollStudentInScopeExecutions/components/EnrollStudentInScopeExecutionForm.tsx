@@ -45,7 +45,7 @@ export const EnrollStudentInScopeExecutionForm = ({ isOpen, onClose, selectedIte
             scopeExecutionID: defaultScopeExecutionId || "",
             studentID: "",
             enrollmentDate: new Date().toISOString().split("T")[0],
-            status: EnrollmentStatus.Enrolled,
+            status: EnrollmentStatus.Pending,
             startDate: "",
             completionDate: "",
             notes: "",
@@ -124,11 +124,10 @@ export const EnrollStudentInScopeExecutionForm = ({ isOpen, onClose, selectedIte
     };
 
     const statusOptions = [
-        { value: EnrollmentStatus.Enrolled, label: "مسجل" },
+        { value: EnrollmentStatus.Pending, label: "معلق" },
         { value: EnrollmentStatus.InProgress, label: "قيد التنفيذ" },
         { value: EnrollmentStatus.Completed, label: "مكتمل" },
-        { value: EnrollmentStatus.Dropped, label: "منسحب" },
-        { value: EnrollmentStatus.Suspended, label: "معلق" },
+        { value: EnrollmentStatus.Failed, label: "فاشل" },
     ];
 
     return (

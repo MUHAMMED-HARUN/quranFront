@@ -46,6 +46,9 @@ const services = [
     { title: 'ترشيحات الاختبارات', icon: <HowToRegIcon sx={{ fontSize: 60, color: 'primary.main' }} />, path: '/test-nominations', description: 'إضافة ومتابعة ترشيحات الطلاب للاختبارات' },
     { title: 'جلسات الاختبار', icon: <CategoryIcon sx={{ fontSize: 60, color: 'warning.main' }} />, path: '/test-sessions', description: 'إدارة لجان ومواعيد جلسات المُمتحنين' },
     { title: 'نتائج الاختبارات', icon: <AssessmentIcon sx={{ fontSize: 60, color: 'info.main' }} />, path: '/test-result-details', description: 'إدارة وتسجيل تفاصيل تقييم نتائج الطلاب' },
+    { title: 'قواعد التقييم الآلي', icon: <AccountTreeIcon sx={{ fontSize: 60, color: 'error.main' }} />, path: '/program-rules', description: 'تحديد شروط النجاح للمستويات' },
+    { title: 'قرارات النجاح', icon: <AssignmentIndIcon sx={{ fontSize: 60, color: 'secondary.main' }} />, path: '/progress-decisions', description: 'متابعة وإصدار قرارات النجاح والرسوب' },
+    { title: 'سجلات الإتمام والشهادات', icon: <ClassIcon sx={{ fontSize: 60, color: 'success.main' }} />, path: '/completion-records', description: 'سجلات اجتياز المستويات للطلاب' },
 ];
 
 export const HomePage = () => {
