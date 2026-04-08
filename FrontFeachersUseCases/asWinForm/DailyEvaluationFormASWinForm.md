@@ -7,8 +7,12 @@ UserControl AoutoCompleteTextInput{
 
 class StudentScopeExecutionDetailMatterdto{
     var ScopeExecutionDetailID;
+    var EnrollmentStudentID;
     var MatterID;
     var MatterName;
+    var ScopeTo;
+    var ScopeFrom;
+    var ScopeUnitTypeID;
 }
 
 class SearchStudentDto{
@@ -90,3 +94,15 @@ DailyEvaluationForm{
     }
 
 }
+
+
+
+var StudentScopeExecutionDetailMatterdto GetStudentScopeExecutionDetailMatterdto(var studentEnrollmentId){
+ return  ef.get(select SEXD.Id,es.Id,m.Id,m.Name,SEXD.ScopeFrom,SEXD.ScopeTo,SEXD.ScopeUnitTypeID from StudentScopeExecutionsDetailsRegisters as SR
+inner join StudentEnrollments As ES on ES.Id = SR.StudentEnrollmentID
+inner join Students as s on s.id= ES.StudentID
+inner join People as p on p.Id = s.PersonID
+inner join ScopeExecutionDetails as SEXD on SEXD.Id=SR.ScopeExecutionDetailID
+inner join Matters as m on m.Id = SEXD.MatterID
+where SR.Status =1).toList();
+}.
