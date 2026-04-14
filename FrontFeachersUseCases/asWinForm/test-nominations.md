@@ -10,7 +10,6 @@ var NominationStatus ;
 var SuggestedDate;
 }
 
-
 UserControl AoutoCompleteTextInput{
 var Key;
 var DisplayValue;  
@@ -35,9 +34,34 @@ var SuggestedDate;
         this.SuggestedDate = suggestedDate;
 
     }
+    void setScopeID(int scopeID ,var scopeType){
+
+         if(scopeType =="ScopeExecution"){
+            this.ScopeExecutionID = scopeID;
+            ScopeExecutionComboBox.ValueMember = this.ScopeExecutionID ;
+                ScopeExecutionDetailComboBox.ValueMember = "";
+                this.ScopeExecutionDetailID = "";
+         }else if(scopeType =="ScopeExecutionDetail"){
+            this.ScopeExecutionDetailID = scopeID;
+            ScopeExecutionDetailComboBox.ValueMember = this.ScopeExecutionDetailID ;
+                        this.ScopeExecutionID = "";
+            ScopeExecutionComboBox.ValueMember = "" ;
+         }
+    }
+
+    void ScopeExecutionComboBox_SelectedIndexChanged(object sender, EventArgs e){
+        if(ScopeExecutionComboBox.SelectedValue != null){
+            setScopeID(Convert.ToInt32(ScopeExecutionComboBox.SelectedValue),"ScopeExecution");
+        }
+    }
+        void ScopeExecutionDetailComboBox_SelectedIndexChanged(object sender, EventArgs e){
+        if(ScopeExecutionDetailComboBox.SelectedValue != null)
+            setScopeID(Convert.ToInt32(ScopeExecutionDetailComboBox.SelectedValue),"ScopeExecutionDetail");
+        }
+
 void TestNominationsForm_Load(){
-   var result= await GetStudentScopeRegisterUnionDtos(studentEnrollmentID);
-   
+var result= await GetStudentScopeRegisterUnionDtos(studentEnrollmentID);
+
     ScopeExecutionComboBox.DataSource = result.Where(x => x.Type == "ScopeExecution");
     ScopeExecutionComboBox.DisplayMember = "TargetName";
     ScopeExecutionComboBox.ValueMember = "ScopeID";
@@ -45,74 +69,64 @@ void TestNominationsForm_Load(){
     ScopeExecutionDetailComboBox.DataSource = result.Where(x => x.Type == "ScopeExecutionDetail");
     ScopeExecutionDetailComboBox.DisplayMember = "TargetName";
     ScopeExecutionDetailComboBox.ValueMember = "ScopeID";
-}
-bool IsStudentHasNominationInScope(var studentEnrollmentId, scopeExecutionId, scopeExecutionDetailId){
-    if(studentEnrollmentId == null){
-        return;
-    }
-    var testNominations = GetTestNominationsByStudentEnrollmentId(studentEnrollmentId);
-    if(testNominations.Count > 0){
-        return false;
-    }
-    return true;
 
 }
+
 bool GetTestNominationsByStudentEnrollmentId(var studentEnrollmentId, var scopeExecutionId, var scopeExecutionDetailId){
- var result = await  api/TestNominations/GetTestNominationsByStudentEnrollmentId/{studentEnrollmentId}/{scopeExecutionId}/{scopeExecutionDetailId}
+var result = await api/TestNominations/GetTestNominationsByStudentEnrollmentId/{studentEnrollmentId}/{scopeExecutionId}/{scopeExecutionDetailId}
 
- return  result;
+return result;
 }
 
 list<TestNominationsDto> GetTestNominationsByStudentEnrollmentId(var studentEnrollmentId){
-    var result = await  api/TestNominations/GetTestNominationsByStudentEnrollmentId/{studentEnrollmentId}
-    return result;
+var result = await api/TestNominations/GetTestNominationsByStudentEnrollmentId/{studentEnrollmentId}
+return result;
 }
 
 public class StudentScopeRegisterUnionDto
 {
-    public Guid Id { get; set; }
-    public Guid StudentEnrollmentID { get; set; }
-    public string StudentName { get; set; }
-    public string TargetName { get; set; } // سيعبر عن MatterName أو ScopeName
-    public EnrollmentStatus Status { get; set; }
-    public DateOnly? StartDate { get; set; }
-    public DateOnly? CompletionDate { get; set; }
-    public string? Notes { get; set; }
-    public Guid ScopeID { get; set; }
-    public string Type { get; set; } // تمييز المصدر: "ScopeExecutionDetail" أو "ScopeExecution"
+public Guid Id { get; set; }
+public Guid StudentEnrollmentID { get; set; }
+public string StudentName { get; set; }
+public string TargetName { get; set; } // سيعبر عن MatterName أو ScopeName
+public EnrollmentStatus Status { get; set; }
+public DateOnly? StartDate { get; set; }
+public DateOnly? CompletionDate { get; set; }
+public string? Notes { get; set; }
+public Guid ScopeID { get; set; }
+public string Type { get; set; } // تمييز المصدر: "ScopeExecutionDetail" أو "ScopeExecution"
 }
-
 
 list<StudentScopeRegisterUnionDto> GetStudentScopeRegisterUnionDtos(var studentEnrollmentId){
-    var result = await  api/TestNominations/GetStudentScopeRegisterUnionDtos/{studentEnrollmentId}
-    return result;
+var result = await api/TestNominations/GetStudentScopeRegisterUnionDtos/{studentEnrollmentId}
+return result;
 }
-/*
+/\*
 back end.infrastructure logic =>
 public async Task<List<StudentScopeRegisterUnionDto>> GetCombinedRegistersAsync(Guid studentEnrollmentId)
 {
-    // الجزء الأول: StudentScopeExecutionsDetailsRegister (InProgress)
-    var detailsQuery = from sr in _context.Set<StudentScopeExecutionsDetailsRegister>()
-                       join es in _context.Set<clsStudentEnrollment>() on sr.StudentEnrollmentID equals es.Id
-                       join s in _context.Set<clsStudent>() on es.StudentID equals s.Id
-                       join p in _context.Set<clsPerson>() on s.PersonID equals p.Id
-                       join sexd in _context.Set<clsScopeExecutionDetail>() on sr.ScopeExecutionDetailID equals sexd.Id
-                       join m in _context.Set<clsMatter>() on sexd.MatterID equals m.Id
-                       where sr.StudentEnrollmentID == studentEnrollmentId 
-                          && sr.Status == EnrollmentStatus.InProgress
-                       select new StudentScopeRegisterUnionDto
-                       {
-                           Id = sr.Id,
-                           StudentEnrollmentID = es.Id,
-                           StudentName = p.FirstName + " " + p.LastName,
-                           TargetName = m.Name, // اسم المادة
-                           Status = sr.Status,
-                           StartDate = sr.StartDate,
-                           CompletionDate = sr.CompletionDate,
-                           Notes = sr.Notes,
-                           ScopeID = sexd.id,
-                           Type = "ScopeExecutionDetail"
-                       };
+// الجزء الأول: StudentScopeExecutionsDetailsRegister (InProgress)
+var detailsQuery = from sr in \_context.Set<StudentScopeExecutionsDetailsRegister>()
+join es in \_context.Set<clsStudentEnrollment>() on sr.StudentEnrollmentID equals es.Id
+join s in \_context.Set<clsStudent>() on es.StudentID equals s.Id
+join p in \_context.Set<clsPerson>() on s.PersonID equals p.Id
+join sexd in \_context.Set<clsScopeExecutionDetail>() on sr.ScopeExecutionDetailID equals sexd.Id
+join m in \_context.Set<clsMatter>() on sexd.MatterID equals m.Id
+where sr.StudentEnrollmentID == studentEnrollmentId
+&& sr.Status == EnrollmentStatus.InProgress
+select new StudentScopeRegisterUnionDto
+{
+Id = sr.Id,
+StudentEnrollmentID = es.Id,
+StudentName = p.FirstName + " " + p.LastName,
+TargetName = m.Name, // اسم المادة
+Status = sr.Status,
+StartDate = sr.StartDate,
+CompletionDate = sr.CompletionDate,
+Notes = sr.Notes,
+ScopeID = sexd.id,
+Type = "ScopeExecutionDetail"
+};
 
     // الجزء الثاني: EnrollStudentInScopeExecution (InProgress)
     var mainScopeQuery = from enr in _context.Set<EnrollStudentInScopeExecution>()
@@ -139,6 +153,7 @@ public async Task<List<StudentScopeRegisterUnionDto>> GetCombinedRegistersAsync(
     var combinedQuery = detailsQuery.Union(mainScopeQuery);
 
     return await combinedQuery.ToListAsync();
+
 }
 
-*/
+\*/

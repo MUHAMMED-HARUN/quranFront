@@ -1,45 +1,45 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from './core/query';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./core/query";
 
-import { CountriesPage } from './features/countries/pages/CountriesPage';
-import { CitiesPage } from './features/cities/pages';
-import { DistrictsPage } from './features/districts/pages';
-import { NeighborhoodsPage } from './features/neighborhoods/pages';
+import { CountriesPage } from "./features/countries/pages/CountriesPage";
+import { CitiesPage } from "./features/cities/pages";
+import { DistrictsPage } from "./features/districts/pages";
+import { NeighborhoodsPage } from "./features/neighborhoods/pages";
 
 // New Feature Imports
-import { PersonsPage } from './features/people/pages';
-import { InstitutesPage } from './features/institutes/pages';
-import { ProgramsPage } from './features/programs/pages';
-import { SubjectsPage } from './features/subjects/pages';
-import { ClassesPage } from './features/classes/pages';
-import { InstituteClassesPage } from './features/instituteClasses/pages';
-import { StudentsPage } from './features/students/pages';
-import { TeachersPage } from './features/teachers/pages';
-import { GroupsPage } from './features/groups/pages/GroupsPage';
-import { GroupStudentsPage } from './features/groups/pages/GroupStudentsPage';
-import { TeachingAssignmentsPage } from './features/teachingAssignments/pages';
-import { StudentEnrollmentsPage } from './features/studentEnrollments/pages';
-import { ScopeUnitTypesPage } from './features/scopeUnitTypes/pages';
-import { AssessmentScopesPage } from './features/assessmentScopes/pages/AssessmentScopesPage';
-import { ScopeExecutionsPage } from './features/scopeExecutions/pages/ScopeExecutionsPage';
-import { ScopeExecutionDetailsPage } from './features/scopeExecutionDetails/pages/ScopeExecutionDetailsPage';
-import { EnrollStudentInScopeExecutionsPage } from './features/enrollStudentInScopeExecutions/pages';
-import { StudentScopeExecutionsDetailsRegistersPage } from './features/studentScopeExecutionsDetailsRegisters/pages';
-import { DailyTrackingsPage } from './features/dailyTrackings/pages/DailyTrackingsPage';
-import { DailyEvaluationsPage } from './features/dailyEvaluations/pages/DailyEvaluationsPage';
-import { StudentAssessmentsPage } from './features/studentAssessments/pages/StudentAssessmentsPage';
-import { MattersPage } from './features/matters/pages';
-import { TestNominationsPage } from './features/testNominations/pages/TestNominationsPage';
-import { TestSessionsPage } from './features/testSessions/pages/TestSessionsPage';
-import { TestResultDetailsPage } from './features/testResultDetails/pages/TestResultDetailsPage';
-import { ProgramRulesPage } from './features/programRules/pages/ProgramRulesPage';
-import { ProgressDecisionsPage } from './features/progressDecisions/pages/ProgressDecisionsPage';
-import { CompletionRecordsPage } from './features/completionRecords/pages/CompletionRecordsPage';
+import { PersonsPage } from "./features/people/pages";
+import { InstitutesPage } from "./features/institutes/pages";
+import { ProgramsPage } from "./features/programs/pages";
+import { SubjectsPage } from "./features/subjects/pages";
+import { ClassesPage } from "./features/classes/pages";
+import { InstituteClassesPage } from "./features/instituteClasses/pages";
+import { StudentsPage } from "./features/students/pages";
+import { TeachersPage } from "./features/teachers/pages";
+import { GroupsPage } from "./features/groups/pages/GroupsPage";
+import { GroupStudentsPage } from "./features/groups/pages/GroupStudentsPage";
+import { TeachingAssignmentsPage } from "./features/teachingAssignments/pages";
+import { StudentEnrollmentsPage } from "./features/studentEnrollments/pages";
+import { ScopeUnitTypesPage } from "./features/scopeUnitTypes/pages";
+import { AssessmentScopesPage } from "./features/assessmentScopes/pages/AssessmentScopesPage";
+import { ScopeExecutionsPage } from "./features/scopeExecutions/pages/ScopeExecutionsPage";
+import { ScopeExecutionDetailsPage } from "./features/scopeExecutionDetails/pages/ScopeExecutionDetailsPage";
+import { EnrollStudentInScopeExecutionsPage } from "./features/enrollStudentInScopeExecutions/pages";
+import { StudentScopeExecutionsDetailsRegistersPage } from "./features/studentScopeExecutionsDetailsRegisters/pages";
+import { DailyTrackingsPage } from "./features/dailyTrackings/pages/DailyTrackingsPage";
+import { DailyEvaluationsPage } from "./features/dailyEvaluations/pages/DailyEvaluationsPage";
+import { StudentAssessmentsPage } from "./features/studentAssessments/pages/StudentAssessmentsPage";
+import { MattersPage } from "./features/matters/pages";
+import { TestNominationsPage } from "./features/test-nominations/pages/TestNominationsPage";
+import { TestSessionsPage } from "./features/testSessions/pages/TestSessionsPage";
+import { TestResultDetailsPage } from "./features/testResultDetails/pages/TestResultDetailsPage";
+import { ProgramRulesPage } from "./features/programRules/pages/ProgramRulesPage";
+import { ProgressDecisionsPage } from "./features/progressDecisions/pages/ProgressDecisionsPage";
+import { CompletionRecordsPage } from "./features/completionRecords/pages/CompletionRecordsPage";
 
-import { HomePage } from './pages/HomePage';
-import { Layout } from './components/common/Layout';
+import { HomePage } from "./pages/HomePage";
+import { Layout } from "./components/common/Layout";
 
 function App() {
   return (
@@ -58,29 +58,68 @@ function App() {
             <Route path="/programs" element={<ProgramsPage />} />
             <Route path="/subjects" element={<SubjectsPage />} />
             <Route path="/classes" element={<ClassesPage />} />
-            <Route path="/institute-classes" element={<InstituteClassesPage />} />
+            <Route
+              path="/institute-classes"
+              element={<InstituteClassesPage />}
+            />
             <Route path="/students" element={<StudentsPage />} />
             <Route path="/teachers" element={<TeachersPage />} />
             <Route path="/groups" element={<GroupsPage />} />
-            <Route path="/groups/:groupId/students" element={<GroupStudentsPage />} />
-            <Route path="/teaching-assignments" element={<TeachingAssignmentsPage />} />
-            <Route path="/student-enrollments" element={<StudentEnrollmentsPage />} />
+            <Route
+              path="/groups/:groupId/students"
+              element={<GroupStudentsPage />}
+            />
+            <Route
+              path="/teaching-assignments"
+              element={<TeachingAssignmentsPage />}
+            />
+            <Route
+              path="/student-enrollments"
+              element={<StudentEnrollmentsPage />}
+            />
             <Route path="/scope-unit-types" element={<ScopeUnitTypesPage />} />
-            <Route path="/assessment-scopes" element={<AssessmentScopesPage />} />
+            <Route
+              path="/assessment-scopes"
+              element={<AssessmentScopesPage />}
+            />
             <Route path="/scope-executions" element={<ScopeExecutionsPage />} />
-            <Route path="/scope-execution-details" element={<ScopeExecutionDetailsPage />} />
-            <Route path="/student-scope-executions-details-registers" element={<StudentScopeExecutionsDetailsRegistersPage />} />
-            <Route path="/enroll-student-in-scope-executions" element={<EnrollStudentInScopeExecutionsPage />} />
+            <Route
+              path="/scope-execution-details"
+              element={<ScopeExecutionDetailsPage />}
+            />
+            <Route
+              path="/student-scope-executions-details-registers"
+              element={<StudentScopeExecutionsDetailsRegistersPage />}
+            />
+            <Route
+              path="/enroll-student-in-scope-executions"
+              element={<EnrollStudentInScopeExecutionsPage />}
+            />
             <Route path="/daily-tracking" element={<DailyTrackingsPage />} />
-            <Route path="/daily-evaluations" element={<DailyEvaluationsPage />} />
-            <Route path="/student-assessments" element={<StudentAssessmentsPage />} />
+            <Route
+              path="/daily-evaluations"
+              element={<DailyEvaluationsPage />}
+            />
+            <Route
+              path="/student-assessments"
+              element={<StudentAssessmentsPage />}
+            />
             <Route path="/matters" element={<MattersPage />} />
             <Route path="/test-nominations" element={<TestNominationsPage />} />
             <Route path="/test-sessions" element={<TestSessionsPage />} />
-            <Route path="/test-result-details" element={<TestResultDetailsPage />} />
+            <Route
+              path="/test-result-details"
+              element={<TestResultDetailsPage />}
+            />
             <Route path="/program-rules" element={<ProgramRulesPage />} />
-            <Route path="/progress-decisions" element={<ProgressDecisionsPage />} />
-            <Route path="/completion-records" element={<CompletionRecordsPage />} />
+            <Route
+              path="/progress-decisions"
+              element={<ProgressDecisionsPage />}
+            />
+            <Route
+              path="/completion-records"
+              element={<CompletionRecordsPage />}
+            />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
