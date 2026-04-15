@@ -52,6 +52,7 @@ export const TestSessionTable: React.FC<TestSessionTableProps> = ({ sessions, is
                         <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold' }}>الإجراءات</TableCell>
                     </TableRow>
                 </TableHead>
+
                 <TableBody>
                     {sessions.map((row) => (
                         <TableRow key={row.Id} hover>

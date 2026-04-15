@@ -13,8 +13,7 @@ Class TestNominationsDTOInfo{
     var NominationStatus:enum
     var SuggestedDate:DateTime?
     var ActualDate:DateTime
-    var NationalNumber string?
-    
+    var NationalNumber string?   
 }
 
 class TestNominationsDtoFilter{
